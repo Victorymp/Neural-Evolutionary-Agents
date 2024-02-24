@@ -13,6 +13,8 @@ import objects.Water;
 
 import dataFrame.DataFrame;
 
+import static javafx.application.Platform.exit;
+
 public class Rules {
 	private AnimatCollection ani_list;
 	private Object[][] ob;
@@ -35,6 +37,7 @@ public class Rules {
 		ani_list.setObjectCollection(ob_list);
 		// ani_list.printAnimatJourney(87,"Inputs-read");
 		ani_list.runDays(50);
+		exit();
 		//ani_list.locateStone();
 
 		//System.out.println(ani.size());

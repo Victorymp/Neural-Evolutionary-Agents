@@ -9,9 +9,12 @@ import java.util.Stack;
 import java.lang.Math;
 
 import dataFrame.DataFrame;
+import objects.Grass;
 import objects.Object;
 import objects.ObjectCollection;
 import objects.Stone;
+
+import neuralNetwork.NeuralNetwork;
 
 public class Animat {
 	private int health;
@@ -31,6 +34,7 @@ public class Animat {
 	@SuppressWarnings("FieldCanBeLocal")
 	private Boolean reached_end;
 
+	private Object current_object;
 	private Stack<Object> path;
 
 	public Animat(int x_pos, int y_pos, int id, Boolean teachers, ObjectCollection object_map_location) {
@@ -53,7 +57,7 @@ public class Animat {
 
 	@Override
 	public String toString() {
-		return ("Animat: "+getId()+" x pos: "+getX()+" y pos: "+getY());
+		return ("Animat: " + getId() + " x pos: " + getX() + " y pos: " + getY());
 	}
 
 	/**
@@ -66,7 +70,7 @@ public class Animat {
 		run();
 		this.getTeachers();
 		generateInputs();
-		path.push(object_map_location.inStack(x_pos,y_pos));
+		path.push(object_map_location.inStack(x_pos, y_pos));
 	}
 
 	public void setObject_map_location(ObjectCollection object_map_location) {
@@ -74,26 +78,33 @@ public class Animat {
 	}
 
 
-	public int getId() { return id; }
+	public int getId() {
+		return id;
+	}
 
-	public int getX() { return x_pos;}
+	public int getX() {
+		return x_pos;
+	}
 
-	public int getY() { return y_pos;}
+	public int getY() {
+		return y_pos;
+	}
+
 	/*
 	 * How it moves within a day
 	 * Decision network
 	 */
 	public void move() {
 		// if you're not dead
-		if(health > 0) {
+		if (health > 0) {
 			// can I pick up the stone
 			pickUpStone();
 			// move if you're not on the water
 			// Implementation of shunting netwok
 			if (y_pos != 2) moveBlock();
-			// move if you're on the water and have a stone
+				// move if you're on the water and have a stone
 			else if (has_stone != null) moveBlock();
-			// die if you're on the water and dont have a stone
+				// die if you're on the water and dont have a stone
 			else die();
 		}
 	}
@@ -101,30 +112,33 @@ public class Animat {
 
 	public String[] getDay(Boolean x) {
 		if (!x) {
-            return new String[]{""+id,""+lifeSpan,""+x_pos,""+y_pos,""+teacher};
+			return new String[]{"" + id, "" + lifeSpan, "" + x_pos, "" + y_pos, "" + teacher};
 		} else {
-			return new String[]{""+id,""+lifeSpan,""+x_pos,""+y_pos,""+teacher,""+reached_end};
+			return new String[]{"" + id, "" + lifeSpan, "" + x_pos, "" + y_pos, "" + teacher, "" + reached_end};
 		}
 	}
 
 
-	public String[] getRuns(){
-		String[] t = {"Animat: "+this.id,"Action:"+ action.getAc()};
+	public String[] getRuns() {
+		String[] t = {"Animat: " + this.id, "Action:" + action.getAc()};
 		return t;
 	}
 
-	public String[] getAnimat() {return new String[]{""+id,""+lifeSpan,""+teacher,""+reached_end};}
+	public String[] getAnimat() {
+		return new String[]{"" + id, "" + lifeSpan, "" + teacher, "" + reached_end};
+	}
 
 	public Boolean getDeath() {
-        return health <= 0;
-    }
+		return health <= 0;
+	}
 
 	public int getLifeSpan() {
 		return lifeSpan;
 	}
 
 	public void die() {
-		health -= 100;}
+		health -= 100;
+	}
 
 	public Boolean getTeacher() {
 		return teacher;
@@ -158,17 +172,19 @@ public class Animat {
 	}
 
 	//loacte stone
+
 	/**
 	 * Locates the closes stone
+	 *
 	 * @param objectCollection
 	 * @return returns array of the location of the closes stone
 	 */
 	public ArrayList<Double> locateStone(ObjectCollection objectCollection) {
 		Stack<Object> temp = objectCollection.getObjects(Stone.class);
 		ArrayList<Double> temp_loc = new ArrayList<>();
-		for(Object i: temp) {
+		for (Object i : temp) {
 			//distance formula
-			Double distance_to_nearest_stone = Math.sqrt(Math.pow((getX() - i.getX()),2) + Math.pow((getY() - i.getY()),2));
+			Double distance_to_nearest_stone = Math.sqrt(Math.pow((getX() - i.getX()), 2) + Math.pow((getY() - i.getY()), 2));
 			temp_loc.add(distance_to_nearest_stone);
 		}
 		return temp_loc;
@@ -176,21 +192,22 @@ public class Animat {
 
 	/**
 	 * Distance to the closest object
+	 *
 	 * @param aClass
 	 * @param objectCollection
 	 * @return Distances
 	 */
-	public double distanceToObject(Class aClass, ObjectCollection objectCollection){
+	public double distanceToObject(Class aClass, ObjectCollection objectCollection) {
 		Stack<Object> temp = objectCollection.getObjects(aClass);
 		ArrayList<Double> temp_loc = new ArrayList<>();
 		double count = 0.0;
 		// closest stone to the start
-		double prev = distance(getX(),getY(),9,13);
-		double min = distance(getX(),getY(),9,13);
-		for(Object i: temp) {
+		double prev = distance(getX(), getY(), 9, 13);
+		double min = distance(getX(), getY(), 9, 13);
+		for (Object i : temp) {
 			//distance formula
-			double distance_to_nearest_stone = Math.sqrt(Math.pow((getX() - i.getX()),2) + Math.pow((getY() - i.getY()),2));
-			if (distance_to_nearest_stone < prev){
+			double distance_to_nearest_stone = Math.sqrt(Math.pow((getX() - i.getX()), 2) + Math.pow((getY() - i.getY()), 2));
+			if (distance_to_nearest_stone < prev) {
 				min = distance_to_nearest_stone;
 			}
 			temp_loc.add(distance_to_nearest_stone);
@@ -200,7 +217,7 @@ public class Animat {
 	}
 
 	private Double distance(int x_first, int y_first, int x_second, int y_second) {
-		return Math.sqrt(Math.pow((x_second - x_first),2) + Math.pow((y_second - y_first),2));
+		return Math.sqrt(Math.pow((x_second - x_first), 2) + Math.pow((y_second - y_first), 2));
 	}
 
 	/**
@@ -210,15 +227,16 @@ public class Animat {
 		//distance to the closest stone
 		Double distance_to_nearest_stone = distanceToObject(Stone.class, object_map_location);
 		//distance to the closest water
-		Double distance_to_water = distance(getX(),getY(),getX(),2);
+		Double distance_to_water = distance(getX(), getY(), getX(), 2);
 		//distance to the start
-		Double distance_from_start = distance(getX(),getY(),10,19);
+		Double distance_from_start = distance(getX(), getY(), 10, 19);
 		//distance to the end
-		Double distance_to_end = distance(getX(),getY(),10,1);
+		Double distance_to_end = distance(getX(), getY(), 10, 1);
 		//has stone
 		int has_stone = 0;
-		if(hasStone() != null) {
-			has_stone = 1;}
+		if (hasStone() != null) {
+			has_stone = 1;
+		}
 		ArrayList<Double> inputs = new ArrayList<>();
 		inputs.add(distance_to_nearest_stone);
 		inputs.add(distance_to_water);
@@ -233,50 +251,88 @@ public class Animat {
 	 * Picks up the stone
 	 */
 	private void pickUpStone() {
-		for(Double i: locateStone(object_map_location)){
-            if (i == 0) {
-                //pick up the stone
-                has_stone = true;
-                //remove the stone from the map
-                return;
-            }
+		for (Double i : locateStone(object_map_location)) {
+			if (i == 0) {
+				//pick up the stone
+				has_stone = true;
+				//remove the stone from the map
+				return;
+			}
 		}
 	}
 
 	private void moveBlock() {
-		if(has_stone != null && y_pos <= 2 ){
+		if (has_stone != null && y_pos <= 2) {
 			this.reached_end = true;
 		}
 		Random r = new Random();
+		// current object
+		current_object = object_map_location.inList(x_pos, y_pos);
+		decisionNetwork();
 		int rand = r.nextInt(3);
-		lifeSpan +=1;
+		lifeSpan += 1;
 		switch (rand) {
 			case 0:
 				action.setAc("back");
-				updateMoves(0,-1);
+				updateMoves(0, -1);
 				break;
 			case 1:
 				action.setAc("left");
-				updateMoves(-1,0);
+				updateMoves(-1, 0);
 				break;
 			case 2:
 				action.setAc("right");
-				updateMoves(1,0);
+				updateMoves(1, 0);
 				break;
 			case 3:
 				action.setAc("forward");
-				updateMoves(0,1);
+				updateMoves(0, 1);
 				break;
 		}
 	}
 
+	/**
+	 * Decision network
+	 */
+	public void decisionNetwork() {
+		// Initialize the neural network
+		NeuralNetwork nn = new NeuralNetwork(5, 4, 67, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
+
+		// Set the inputs to the neural network
+		String[] inputs = generateInputs();
+		double[] inputValues = new double[inputs.length];
+		for (int i = 0; i < inputs.length; i++) {
+			inputValues[i] = Double.parseDouble(inputs[i]);
+		}
+		;
+
+		// Get the output values
+		double[] outputValues = nn.feedForward(inputValues);
+
+		// Based on the output values, set the Iota values and determine the pick-up/put-down actions
+		for (int i = 0; i < object_map_location.getActivationMap().length; i++) {
+			if(current_object != null && current_object.getClass() != Grass.class){
+				if (outputValues[i] > 0.3) {
+					// Set the Iota value to +15 or pick up the object
+					// object_map_location.setIota(x_pos, y_pos, 15);
+					current_object.setIota(15);
+				} else if (outputValues[i] < -0.3) {
+					// Set the Iota value to -15 or put down the object
+					// object_map_location.setIota(x_pos, y_pos, -15);
+					current_object.setIota(-15);
+				} else {
+					// Set the Iota value to 0
+					// object_map_location.setIota(x_pos, y_pos, 0);
+					current_object.setIota(0);
+				}
+			} else if (current_object != null && current_object.getClass() == Grass.class ) {
+				current_object.setIota(0);
+			}
+		}
+	}
+
+
 	public Boolean getReached_end() {
 		return reached_end;
-	}
-}
-
-class StackException extends Exception{
-	public StackException(String message) {
-		super(message);
 	}
 }

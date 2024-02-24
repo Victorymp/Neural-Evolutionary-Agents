@@ -1,15 +1,28 @@
 package objects;
 
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 public class ObjectCollection {
 
 	private Stack<Object> object_stack;
-	public ObjectCollection() {
+
+	private ArrayList<Object> object_list;
+
+	private double[][] activation_map;
+
+    public ObjectCollection() {
 		object_stack = new Stack<>();
+		// Values held in the object map are Iota values
+        activation_map = new double[21][21];
+
+		object_list = new ArrayList<>();
 	}
 
+	public double[][] getActivationMap() {
+		return activation_map;
+	}
 	public Stack<Object> getStack(){
 		return object_stack;
 	}
@@ -18,8 +31,16 @@ public class ObjectCollection {
 		object_stack = new Stack<>();
 	}
 
+
+
 	public void addObject(Object ob) {
 		object_stack.push(ob);
+		object_list.add(ob);
+		activation_map[ob.getX()][ob.getY()] = 0;
+		if(ob.getClass() == Stone.class) {
+			activation_map[ob.getX()][ob.getY()] = 0;
+		}
+		sortList();
 		//System.out.println("add "+ob.getClass()+ " x: "+ob.x_pos+" y: "+ob.y_pos);
 	}
 
@@ -30,6 +51,19 @@ public class ObjectCollection {
 			}
 		}
 		return null;
+	}
+
+	public Object inList(int x, int y) {
+		for(Object i: object_list) {
+			if(i.getX() == x && i.getY() == y) {
+				return i;
+			}
+		}
+		return null;
+	}
+
+	public void setIota(int x, int y, double value) {
+		inStack(x,y).setIota(value);
 	}
 
 	public int inStackIndex(int x, int y) {
@@ -43,8 +77,13 @@ public class ObjectCollection {
 		return -1;
 	}
 
-	public int objectSize() {
-		return object_stack.capacity();
+	public void objectSize() {
+		sortList();
+		System.out.println(object_list.size());
+	}
+
+	public ArrayList<Object> getLists(){
+		return object_list;
 	}
 
 	public void displayObjects() {
@@ -84,5 +123,21 @@ public class ObjectCollection {
 		object_stack.remove(ob);
 	}
 
+	/**
+	 * Sort the objects in the list
+	 */
+	private void sortList() {
+		ArrayList<Object> temp = new ArrayList<>();
+		for(int i = 0; i < 20; i++) {
+			for(int j = 0; j < 20; j++) {
+				for(Object k: object_list) {
+					if(k.getX() == i && k.getY() == j) {
+						temp.add(k);
+					}
+				}
+			}
+		}
+		object_list = temp;
+	}
 
 }

@@ -8,6 +8,8 @@ import java.util.List;
 import dataFrame.DataFrame;
 import objects.ObjectCollection;
 
+import static javafx.application.Platform.exit;
+
 
 public class AnimatCollection {
 	private ArrayList<Animat> ani;

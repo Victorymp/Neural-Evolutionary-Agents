@@ -16,7 +16,7 @@ public abstract class Object implements Drawable{
 	// protected Integer health;
 	protected Integer x_pos;
 	protected Integer y_pos;
-	protected String colour;
+	protected double iota; ;
 
 /**
  * 
@@ -29,6 +29,7 @@ public abstract class Object implements Drawable{
 		this.location = setLocation(x_pos,y_pos);
 		this.attack = 100;
 		this.on_top = false;
+		iota = 0;
 	}
 
 	/**
@@ -109,6 +110,22 @@ public abstract class Object implements Drawable{
 	 */
 	public void setOnTopFalse() {
 		on_top = false;
+	}
+
+	/**
+	 * Get Iota value
+	 * @return
+	 */
+	public double getIota() {
+		return iota;
+	}
+
+	/**
+	 * Set Iota value
+	 * @param value
+	 */
+	public void setIota(double value) {
+		this.iota = value;
 	}
 
 }
