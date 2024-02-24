@@ -1,6 +1,5 @@
 package main;
 
-import animat.Animat;
 import animat.AnimatCollection;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -14,33 +13,27 @@ import objects.ObjectCollection;
 import objects.Stone;
 import objects.Water;
 import rules.Rules;
+import dataFrame.DataFrame;
 
 public class Main extends Application {
 	//2d array which hold the values for location of the items
-	Object[][] objects = new Object[20][20];
+	Object[][] objects_list = new Object[20][20];
 
 	// holds the objects
-	private ObjectCollection ob;
+	private ObjectCollection objects_arraylist;
 
-
+	private DataFrame df;
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
+		df = new DataFrame();
         primaryStage.setTitle("Social learning");
-
         // visual board
         GridPane board = new GridPane();
-
-        //creating generations
-        AnimatCollection generation = new AnimatCollection(1);
-        generation.startGeneration(100);
-
-        //
-        ob = new ObjectCollection();
-
+        objects_arraylist = new ObjectCollection();
         // 100 rectangles grid
         // 5x20 grid
         int count = 0;
@@ -53,8 +46,8 @@ public class Main extends Application {
         		if(y == 2){
                     r.setFill(Color.BLUE);
                     Water water = new Water(x,y);
-                    objects[x][y] = water;
-                    ob.addObject(water);
+                    objects_list[x][y] = water;
+                    objects_arraylist.addObject(water);
                 } else if (isStone(x,y) ) {
                 	r.setFill(Color.LIGHTGREY);
                 	// System.out.println("x"+x+"y"+y);
@@ -66,16 +59,17 @@ public class Main extends Application {
                 board.add(r, x, y);
         	}
         }
+		//creating generations
+		AnimatCollection generation = new AnimatCollection(1, objects_arraylist);
+		//starts generation with 100 animats
+		generation.startGeneration(100);
+        Rules rules = new Rules(generation, objects_list, objects_arraylist);
 
-        // System.out.println(objects[18][2]);
-        //ob.createNewStack();
-        Rules rules = new Rules(generation, objects, ob);
+		rules.Start();
         board.setAlignment(Pos.CENTER);
         Scene scene = new Scene(board);
         primaryStage.setFullScreen(false);
         primaryStage.setScene(scene);
-        //primaryStage.show();
-
     }
 
     /**
@@ -87,32 +81,32 @@ public class Main extends Application {
     private Boolean isStone(int x, int y) {
     	Stone st = new Stone(x,y);
     	if (x == 1 && y == 4) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}else if (x == 2 && y == 12) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}else if (x == 5 && y == 9) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}else if (x == 9 && y == 13) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}else if (x == 12 && y == 10) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}else if (x == 14 && y == 6) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}else if (x == 18 && y == 12) {
-    		objects[x][y]=st;
-    		ob.addObject(st);
+    		objects_list[x][y]=st;
+    		objects_arraylist.addObject(st);
     		return true;
     	}
 

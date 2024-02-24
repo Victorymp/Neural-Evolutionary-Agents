@@ -56,6 +56,20 @@ public class DataFrame {
 			
 		}
 	}
+	public void saveRun(String x, List<String[]> runs, String[] header) {
+		runsData = "resources/Memory/"+x+".csv";
+		try {
+			FileWriter fw = new FileWriter(runsData);
+			CSVWriter cs = new CSVWriter(fw);
+
+			cs.writeNext(header);
+			cs.writeAll(runs);
+			cs.close();
+
+		}catch(IOException e) {
+
+		}
+	}
 	public void multiDaySave(String x,ArrayList<ArrayList<String[]>> runs) {
 		runsData = "resources/Memory/"+x+".csv";
 		try {
@@ -75,6 +89,14 @@ public class DataFrame {
 		}catch(IOException e) {
 			
 		}
+	}
+
+	public ArrayList<String[]> multiDayConversion(ArrayList<ArrayList<String[]>> runs) {
+		ArrayList<String[]> tmp = new ArrayList<>();
+		for(ArrayList<String[]> i: runs) {
+			tmp.addAll(i);
+		}
+		return tmp;
 	}
 	
 	
@@ -119,5 +141,51 @@ public class DataFrame {
 		}
 		return records;
 	}
+
+	/**
+	 * Save inputs to a csv file
+	 * @param x
+	 * @param data
+	 */
+	public void saveInputs(String x, ArrayList<String[]> data) {
+		try {
+			FileWriter fw = new FileWriter("resources/Memory/"+x+".csv");
+			CSVWriter cs = new CSVWriter(fw);
+
+			String[] header = {"Animat","Nearest stone","Distance to water","Distance from start","Distance to end","Has stone"};
+			String[] footer = {data.size()+""};
+
+			cs.writeNext(header);
+			cs.writeAll(data);
+			cs.writeNext(footer);
+			cs.close();
+
+		}catch(IOException e) {
+
+		}}
+
+		/**
+		 * Save data to a csv file
+		 * @param x
+		 * @param data
+		 */
+		public void saveData(String x, ArrayList<String[]> data, String[] header) {
+			try {
+				FileWriter fw = new FileWriter("resources/Memory/"+x+".csv");
+				CSVWriter cs = new CSVWriter(fw);
+
+				//String[] header = {"Animat","Day","Location x:","Location y:","Teacher"};
+				String[] footer = {data.size()+""};
+
+				cs.writeNext(header);
+				cs.writeAll(data);
+				cs.writeNext(footer);
+				cs.close();
+
+			}catch(IOException e) {
+
+			}
+		}
+
 	
 }

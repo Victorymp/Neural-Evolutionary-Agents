@@ -27,16 +27,16 @@ public class Rules {
 		this.ob_list = ob_list;
 
 		ani = ani_list.getGeneration();
-;		Start();
 	}
-
+	/**
+	 * Starting point for the simulation
+	 */
 	public void Start() {
+		ani_list.setObjectCollection(ob_list);
+		// ani_list.printAnimatJourney(87,"Inputs-read");
 		ani_list.runDays(50);
-		ani_list.printAnimatJourney(5);
-		//System.out.println(ani.size());
-	}
+		//ani_list.locateStone();
 
-	public void day() {
-		
+		//System.out.println(ani.size());
 	}
 }

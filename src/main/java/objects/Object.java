@@ -18,7 +18,11 @@ public abstract class Object implements Drawable{
 	protected Integer y_pos;
 	protected String colour;
 
-
+/**
+ * 
+ * @param x_pos
+ * @param y_pos
+ */
 	public Object(int x_pos, int y_pos) {
 		this.x_pos = x_pos;
 		this.y_pos = y_pos;
