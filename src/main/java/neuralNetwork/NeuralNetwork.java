@@ -115,10 +115,11 @@ public class NeuralNetwork {
         return nn;
     }
 
-    public NeuralNetwork crossover(NeuralNetwork partner) {
+    public NeuralNetwork crossOver(NeuralNetwork partner) {
         // create a new child
         NeuralNetwork child = new NeuralNetwork(this.input_nodes, this.hidden_nodes, this.output_nodes, this.learning_rate);
         // pick a random midpoint in the parent's Hidden layer
+        // first half from this and second half from partner
         for (int i = 0; i < this.hidden_nodes; i++) {
             for (int j = 0; j < this.input_nodes; j++) {
                 if (Math.random() < 0.5) {
@@ -128,6 +129,8 @@ public class NeuralNetwork {
                 }
             }
         }
+        // pick a random midpoint in the parent's output layer
+        // first half from this and second half from partner
         for (int i = 0; i < this.output_nodes; i++) {
             for (int j = 0; j < this.hidden_nodes; j++) {
                 if (Math.random() < 0.5) {

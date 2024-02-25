@@ -12,12 +12,26 @@ public class ObjectCollection {
 
 	private double[][] activation_map;
 
+	private Object[][] null_location;
+
     public ObjectCollection() {
 		object_stack = new Stack<>();
-		// Values held in the object map are Iota values
+		// Values held in the object map.map are Iota values
         activation_map = new double[21][21];
 
 		object_list = new ArrayList<>();
+		null_location = new Object[21][21];
+	}
+
+	public void createMap(){
+		// 100 rectangles grid
+		// 20x20 grid
+		for (int y = 0; y < 20; y++) {
+			for (int x = 0; x < 20; x++) {
+				Grass grass = new Grass(x, y);
+				addObject(grass);
+			}
+		}
 	}
 
 	public double[][] getActivationMap() {
@@ -34,19 +48,24 @@ public class ObjectCollection {
 
 
 	public void addObject(Object ob) {
+		// check if object already exists
+		if(object_list.contains(ob) || ob.getX() < 0 || ob.getX() > 20 || ob.getY() < 0 || ob.getY() > 20) {
+			System.out.println("Object already exists");
+			return;
+		}
 		object_stack.push(ob);
 		object_list.add(ob);
 		activation_map[ob.getX()][ob.getY()] = 0;
 		if(ob.getClass() == Stone.class) {
 			activation_map[ob.getX()][ob.getY()] = 0;
 		}
-		sortList();
+		//sortList();
 		//System.out.println("add "+ob.getClass()+ " x: "+ob.x_pos+" y: "+ob.y_pos);
 	}
 
 	public Object inStack(int x, int y) {
 		for(Object i: object_stack) {
-			if(i.getX() == x && i.getY() == y) {
+			if(i.getX().equals(x) && i.getY().equals(y)) {
 				return i;
 			}
 		}
@@ -59,7 +78,19 @@ public class ObjectCollection {
 				return i;
 			}
 		}
-		return null;
+		if(x < 0 || x > 20 || y < 0 || y > 20) {
+			Grass grass = new Grass(x, y);
+			addObject(grass);
+			return grass;
+		}
+		null_location[x][y] = new Grass(x, y);
+		if(y !=2){
+		Grass grass = new Grass(x, y);
+		addObject(grass);
+		return grass;}
+		Water water = new Water(x, y);
+		addObject(water);
+		return water;
 	}
 
 	public void setIota(int x, int y, double value) {
@@ -78,7 +109,7 @@ public class ObjectCollection {
 	}
 
 	public void objectSize() {
-		sortList();
+		//sortList();
 		System.out.println(object_list.size());
 	}
 
@@ -139,5 +170,24 @@ public class ObjectCollection {
 		}
 		object_list = temp;
 	}
+
+	// displays null locations
+	public void displayNullLocations() {
+		for(Object[] i: null_location) {
+			for(Object j: i) {
+				System.out.println("x: "+j.getX()+" y: "+j.getY());
+			}
+		}
+	}
+
+	// displays the activation map.map
+	public void displayActivationMap() {
+		// sortList();
+		for(Object i:object_list){
+			System.out.println("x: "+i.getX()+" y: "+i.getY()+" Iota: "+i.getIota());
+			}
+
+	}
+
 
 }

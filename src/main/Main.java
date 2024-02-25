@@ -77,7 +77,7 @@ public class Main extends Application {
     }
 
     /**
-     * Sets the stones for the map
+     * Sets the stones for the map.map
      * @param x
      * @param y
      * @return

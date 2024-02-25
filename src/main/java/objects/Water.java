@@ -1,6 +1,7 @@
 package objects;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class Water extends Object {
 
@@ -8,6 +9,13 @@ public class Water extends Object {
 	public Water(int x_pos, int y_pos) {
 		super(x_pos, y_pos);
 		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	public Color getColor() {
+		if(iota == 0)return Color.BLUE;
+		if(iota < 0 )return Color.RED;
+		else return Color.GREY;
 	}
 
 	/**
@@ -35,6 +43,8 @@ public class Water extends Object {
 		// TODO Auto-generated method stub
 
 	}
+
+
 
 
 

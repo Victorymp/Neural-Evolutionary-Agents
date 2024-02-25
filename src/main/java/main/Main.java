@@ -8,6 +8,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import map.Map;
 import objects.*;
 import objects.Object;
 import rules.Rules;
@@ -30,61 +31,23 @@ public class Main extends Application {
 		df = new DataFrame();
         primaryStage.setTitle("Social learning");
         // visual board
-        GridPane board = new GridPane();
-        objects_arraylist = new ObjectCollection();
-        // 100 rectangles grid
-        // 5x20 grid
-        int count = 0;
-        double sides = 40; // length of each box
-        for (int y = 0; y < 20; y++) {
-			count++;
-			for (int x = 0; x < 20; x++) {
-				Rectangle r = new Rectangle(sides, sides, sides, sides);
-				// creating a blue line for the water
-				if (y == 2) {
-					r.setFill(Color.BLUE);
-					Water water = new Water(x, y);
-					objects_list[x][y] = water;
-					objects_arraylist.addObject(water);
-				} else if (isStone(x, y)) {
-					r.setFill(Color.LIGHTGREY);
-					// System.out.println("x"+x+"y"+y);
-				} else if (x == 10 & y == 19) {
-					r.setFill(Color.BLACK);
-				} else {
-					Grass grass = new Grass(x, y);
-					objects_arraylist.addObject(grass);
-					r.setFill(Color.GREEN);
-				}
-				board.add(r, x, y);
-			}
-		}
-		for(int i = 0; i < 20; i++) {
-			for(int j = 0; j < 20; j++) {
-				if(objects_arraylist.inList(i,j) == null) {
-					Grass grass = new Grass(i, j);
-					objects_arraylist.addObject(grass);
-			}
-		}}
-		objects_arraylist.objectSize();
+        createMap();
 		//creating generations
 		AnimatCollection generation = new AnimatCollection(1, objects_arraylist);
 		//starts generation with 100 animats
-		generation.startGeneration(100);
+		generation.startGeneration(500);
         Rules rules = new Rules(generation, objects_list, objects_arraylist);
-
 		rules.Start();
-		/*
-        board.setAlignment(Pos.CENTER);
-        Scene scene = new Scene(board);
-        primaryStage.setFullScreen(false);
-        primaryStage.setScene(scene);
-        */
+		Map activation_map = Map.createMap(rules.getObjectCollection());
+		activation_map.generateMap();
+        primaryStage.setScene(activation_map.createScene());
+		primaryStage.show();
+
 
     }
 
     /**
-     * Sets the stones for the map
+     * Sets the stones for the map.map
      * @param x
      * @param y
      * @return
@@ -123,4 +86,45 @@ public class Main extends Application {
 
     	return false;
     }
+
+	public void createMap(){
+		GridPane board = new GridPane();
+		objects_arraylist = new ObjectCollection();
+		// 100 rectangles grid
+		// 5x20 grid
+		int count = 0;
+		double sides = 40; // length of each box
+		for (int y = 0; y < 20; y++) {
+			count++;
+			for (int x = 0; x < 20; x++) {
+				Rectangle r = new Rectangle(sides, sides, sides, sides);
+				Grass grass = new Grass(x, y);
+				Water water = new Water(x, y);
+				// creating a blue line for the water
+				if (y == 2) {
+					r.setFill(Color.BLUE);
+					objects_list[x][y] = water;
+					objects_arraylist.addObject(water);
+				} else if (isStone(x, y)) {
+					r.setFill(Color.LIGHTGREY);
+					// System.out.println("x"+x+"y"+y);
+				} else if (x == 10 & y == 19) {
+					r.setFill(Color.BLACK);
+					objects_arraylist.addObject(grass);
+				} else {
+					objects_arraylist.addObject(grass);
+					r.setFill(Color.GREEN);
+				}
+				board.add(r, x, y);
+			}
+		}
+		for(int i = 0; i < 20; i++) {
+			for(int j = 0; j < 20; j++) {
+				if(objects_arraylist.inList(i,j) == null) {
+					Grass grass = new Grass(i, j);
+					objects_arraylist.addObject(grass);
+				}
+			}
+		}
+	}
 }

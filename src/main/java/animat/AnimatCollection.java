@@ -67,7 +67,7 @@ public class AnimatCollection {
 		} else {
 			System.out.println("Too big");
 		}
-		// Gives the animats the object map
+		// Gives the animats the object map.map
 		for (Animat i: ani) {
 			i.setObject_map_location(objectCollection);
 		}

@@ -37,9 +37,15 @@ public class Rules {
 		ani_list.setObjectCollection(ob_list);
 		// ani_list.printAnimatJourney(87,"Inputs-read");
 		ani_list.runDays(50);
-		exit();
+		ob_list.objectSize();
+		ob_list.displayActivationMap();
+		//exit();
 		//ani_list.locateStone();
 
 		//System.out.println(ani.size());
+	}
+
+	public ObjectCollection getObjectCollection() {
+		return ob_list;
 	}
 }

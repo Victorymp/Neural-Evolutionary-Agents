@@ -2,13 +2,14 @@ package objects;
 
 import java.util.ArrayList;
 
+import javafx.scene.paint.Color;
 import shape.Drawable;
 
 public abstract class Object implements Drawable{
 	// protected Boolean traversable;
 	protected Boolean on_top;
 	protected ArrayList<Integer> location;
-	protected Boolean lethal;
+	protected double moveable = 0;
 	/**
 	 * Determines if item is lethal
 	 */
@@ -127,5 +128,15 @@ public abstract class Object implements Drawable{
 	public void setIota(double value) {
 		this.iota = value;
 	}
+
+	public void setMoveable(double value) {
+		this.moveable = value;
+	}
+
+	public double getMoveable() {
+		return moveable;
+	}
+
+	public abstract Color getColor();
 
 }

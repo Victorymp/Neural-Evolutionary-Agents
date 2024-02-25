@@ -37,6 +37,8 @@ public class Animat {
 	private Object current_object;
 	private Stack<Object> path;
 
+	private NeuralNetwork nn;
+
 	public Animat(int x_pos, int y_pos, int id, Boolean teachers, ObjectCollection object_map_location) {
 		this.object_map_location = object_map_location;
 		locations = new Integer[2];
@@ -53,6 +55,9 @@ public class Animat {
 		this.teacher = teachers;
 		reached_end = false;
 		path = new Stack<>();
+		current_object = object_map_location.inList(x_pos, y_pos);
+		// Initialize the neural network
+		nn = new NeuralNetwork(5, 4, 67, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
 	}
 
 	@Override
@@ -64,8 +69,21 @@ public class Animat {
 	 * Updates location and everything used to move
 	 */
 	public void updateMoves(int x, int y) {
-		x_pos += x;
-		y_pos += y;
+		// if the move is within the bounds of the map.map
+		if(x_pos + x > 0|| x_pos + x < 20){
+			if(y_pos + y > 0|| y_pos + y < 20){
+				x_pos += x;
+				y_pos += y;
+			}
+		} else {
+			System.out.println("x pos: "+x_pos);
+		}
+		if(x_pos<0) x_pos = 0;
+		if(x_pos>20) x_pos = 20;
+		if(y_pos<0) y_pos = 0;
+		if(y_pos>20) y_pos = 20;
+
+		current_object = object_map_location.inList(x_pos, y_pos);
 		updateLocation();
 		run();
 		this.getTeachers();
@@ -237,12 +255,22 @@ public class Animat {
 		if (hasStone() != null) {
 			has_stone = 1;
 		}
+		// is current object moveable
+		if (current_object != null) {
+			if (current_object.getClass() == Grass.class) {
+				}
+		}
+
 		ArrayList<Double> inputs = new ArrayList<>();
+		// Is the animat carrying a stone
+		inputs.add((double) has_stone);
+		// Is the object moveable
+        inputs.add(current_object.getMoveable());
+		// Distance to the nearest stone
 		inputs.add(distance_to_nearest_stone);
 		inputs.add(distance_to_water);
 		inputs.add(distance_from_start);
 		inputs.add(distance_to_end);
-		inputs.add((double) has_stone);
 		return new String[]{"" + id, "" + inputs.get(0), "" + inputs.get(1), "" + inputs.get(2), "" + inputs.get(3), "" + inputs.get(4)};
 
 	}
@@ -255,7 +283,7 @@ public class Animat {
 			if (i == 0) {
 				//pick up the stone
 				has_stone = true;
-				//remove the stone from the map
+				//remove the stone from the map.map
 				return;
 			}
 		}
@@ -267,7 +295,7 @@ public class Animat {
 		}
 		Random r = new Random();
 		// current object
-		current_object = object_map_location.inList(x_pos, y_pos);
+		current_object = object_map_location.inList(getX(), getY());
 		decisionNetwork();
 		int rand = r.nextInt(3);
 		lifeSpan += 1;
@@ -295,9 +323,7 @@ public class Animat {
 	 * Decision network
 	 */
 	public void decisionNetwork() {
-		// Initialize the neural network
-		NeuralNetwork nn = new NeuralNetwork(5, 4, 67, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
-
+		current_object = object_map_location.inList(getX(), getY());
 		// Set the inputs to the neural network
 		String[] inputs = generateInputs();
 		double[] inputValues = new double[inputs.length];
