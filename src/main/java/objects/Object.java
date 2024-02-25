@@ -19,6 +19,8 @@ public abstract class Object implements Drawable{
 	protected Integer y_pos;
 	protected double iota; ;
 
+	public Boolean ENVIRONMENT_TYPE;
+
 /**
  * 
  * @param x_pos
@@ -30,9 +32,22 @@ public abstract class Object implements Drawable{
 		this.location = setLocation(x_pos,y_pos);
 		this.attack = 100;
 		this.on_top = false;
-		iota = 0;
+		setEnvironment_type();
 	}
+	private void setEnvironment_type() {
+		if (this instanceof Water){
+			ENVIRONMENT_TYPE = true;
+		}
+		else if (this instanceof Grass){
+			ENVIRONMENT_TYPE = true;
+		}
+		else if (this instanceof Stone){
+			ENVIRONMENT_TYPE = false;
+		}
 
+		if (ENVIRONMENT_TYPE) this.iota = 0;
+		else this.iota = 1;
+	}
 	/**
 	 *
 	 * @return current x position

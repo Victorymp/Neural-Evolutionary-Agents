@@ -262,16 +262,18 @@ public class Animat {
 		}
 
 		ArrayList<Double> inputs = new ArrayList<>();
+		// Set the Iota input values
+		inputs.add(object_map_location.getIota(x_pos, y_pos));
 		// Is the animat carrying a stone
 		inputs.add((double) has_stone);
 		// Is the object moveable
         inputs.add(current_object.getMoveable());
 		// Distance to the nearest stone
-		inputs.add(distance_to_nearest_stone);
-		inputs.add(distance_to_water);
+		// inputs.add(distance_to_nearest_stone);
+		//inputs.add(distance_to_water);
 		inputs.add(distance_from_start);
 		inputs.add(distance_to_end);
-		return new String[]{"" + id, "" + inputs.get(0), "" + inputs.get(1), "" + inputs.get(2), "" + inputs.get(3), "" + inputs.get(4)};
+		return new String[]{"" + inputs.get(0), "" + inputs.get(1), "" + inputs.get(2), "" + inputs.get(3), "" + inputs.get(4)};
 
 	}
 
@@ -323,6 +325,7 @@ public class Animat {
 	 * Decision network
 	 */
 	public void decisionNetwork() {
+		double iota;
 		current_object = object_map_location.inList(getX(), getY());
 		// Set the inputs to the neural network
 		String[] inputs = generateInputs();
@@ -330,10 +333,16 @@ public class Animat {
 		for (int i = 0; i < inputs.length; i++) {
 			inputValues[i] = Double.parseDouble(inputs[i]);
 		}
-		;
+		// Input iota values
+		// object_map_location.setIota(x_pos, y_pos, 0);
 
+		if (current_object.ENVIRONMENT_TYPE) {
+			iota = 1;
+		} else {
+			iota = -1;
+		}
 		// Get the output values
-		double[] outputValues = nn.feedForward(inputValues);
+		double[] outputValues = nn.feedForward(inputValues,iota);
 
 		// Based on the output values, set the Iota values and determine the pick-up/put-down actions
 		for (int i = 0; i < object_map_location.getActivationMap().length; i++) {

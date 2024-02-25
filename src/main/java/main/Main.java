@@ -35,7 +35,7 @@ public class Main extends Application {
 		//creating generations
 		AnimatCollection generation = new AnimatCollection(1, objects_arraylist);
 		//starts generation with 100 animats
-		generation.startGeneration(500);
+		generation.startGeneration(100);
         Rules rules = new Rules(generation, objects_list, objects_arraylist);
 		rules.Start();
 		Map activation_map = Map.createMap(rules.getObjectCollection());

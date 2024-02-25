@@ -190,4 +190,7 @@ public class ObjectCollection {
 	}
 
 
+	public Double getIota(int xPos, int yPos) {
+		return inStack(xPos, yPos).getIota();
+	}
 }

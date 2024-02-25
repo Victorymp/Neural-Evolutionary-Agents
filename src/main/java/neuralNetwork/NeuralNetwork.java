@@ -43,21 +43,23 @@ public class NeuralNetwork {
         }
     }
 
-    public double[] feedForward(double[] input_array) {
+    public double[] feedForward(double[] input_array,double I) {
         // Calculate the hidden layer values
         double[] hidden = new double[this.hidden_nodes];
         double[] output = new double[this.output_nodes];
+        double A = learning_rate;
+
 
         // Calculate the hidden layer values
         for (int i = 0; i < this.hidden_nodes; i++) {
             double sum = 0;
             for (int j = 0; j < this.input_nodes; j++) {
                 // Sum of the weights times the inputs
-                sum += this.weights_ih[i][j] * input_array[j];
+                sum += this.weights_ih[i][j] * Math.max(0,input_array[j]) ;
             }
             sum += this.bias_h[i];
             // Activation function at each hidden node
-            hidden[i] = tanh(sum);
+            hidden[i] = tanh(-A+hidden[i]+I+sum);
         }
 
         for (int i = 0; i < this.output_nodes; i++) {
@@ -66,7 +68,7 @@ public class NeuralNetwork {
                 sum += this.weights_ho[i][j] * hidden[j];
             }
             sum += this.bias_o[i];
-            output[i] = sum;
+            output[i] = tanh((-A+I+sum));
         }
         return output;
     }
