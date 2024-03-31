@@ -15,7 +15,7 @@ public class Water extends Object {
 	public Color getColor() {
 		if(iota == 0)return Color.BLUE;
 		if(iota < 0 )return Color.RED;
-		else return Color.GREY;
+		else return Color.YELLOW;
 	}
 
 	/**

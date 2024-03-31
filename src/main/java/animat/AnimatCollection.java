@@ -13,7 +13,7 @@ import static javafx.application.Platform.exit;
 
 public class AnimatCollection {
 	private ArrayList<Animat> ani;
-	private final int generation;
+	private int generation;
 	private List<String[]> death_runs;
 	private List<String[]> ls;
 	private DataFrame rdf;
@@ -21,7 +21,6 @@ public class AnimatCollection {
 	private List<String[]> all_animats;
 	private ArrayList<ArrayList<String[]>> multiple_days;
 	private ObjectCollection objectCollection;
-	private ArrayList<String[]> inputs;
 	private ArrayList<String[]> reward_list;
 	private int global_day;
 	private ArrayList<ArrayList<String[]>> multiple_days_2;
@@ -36,7 +35,6 @@ public class AnimatCollection {
 		death_runs = new ArrayList<String[]>();
 		reward_list = new ArrayList<String[]>();
 		this.objectCollection = objectCollection;
-		inputs = new ArrayList<>();
 		all_animats = new ArrayList<>();
 		global_day = 0;
 	}
@@ -55,7 +53,7 @@ public class AnimatCollection {
 		// 20% of the animats are teachers
 		int teachers_percent= (int) Math.round(x*0.2);
 		if (x <=1000) {
-			for(int i = 0; i<=x; i++) {
+			for(int i = 0; i<x; i++) {
 				// if i is less than the percentage of teachers
 				if( i < teachers_percent) {
 					ani.add(new Animat(10,20,i,true,objectCollection));
@@ -63,7 +61,7 @@ public class AnimatCollection {
 					ani.add(new Animat(10,20,i, false,objectCollection));
 				}
 			}
-			System.out.println("Created "+x+" Animats");
+			System.out.println("Created "+ani.size()+" Animats");
 		} else {
 			System.out.println("Too big");
 		}
@@ -88,12 +86,18 @@ public class AnimatCollection {
 					ani.add(new Animat(10,20,i,true,objectCollection));
 				}
 				ani.add(new Animat(10,20,i, false,objectCollection));
-			} System.out.println("Created "+x+" Animats");
+			} System.out.println("Created "+ani.size()+" Animats");
 		} else {
 			System.out.println("Too big");
 		}
 		}
-
+	public void nextGeneration() {
+		ArrayList<Animat> tmp = new ArrayList<>();
+		for(Animat i: ani) {
+			tmp.add(i);
+		}
+		ani = tmp;
+	}
 
 	public ArrayList<Animat> getGeneration(){
 		return ani;
@@ -133,12 +137,10 @@ public class AnimatCollection {
 
 		System.out.print("Deaths at the end of the generation: "+ death_runs.size()+"\n");
 		System.out.print("Reached end at the end of the generation: "+ reward_list.size()+"\n");
+		System.out.print("Animats: "+ ani.size()+"\n");
 	}
-	
-
-
-	
 	private void day() {
+		mutate();
 		Iterator<Animat> iterator = ani.iterator();
 		ArrayList<Animat> tmp = new ArrayList<Animat>();
 		ArrayList<String[]> day = new ArrayList<>();
@@ -150,17 +152,10 @@ public class AnimatCollection {
 		 */
 		for(Animat i: ani) {
 			i.move();
-			// if the animat is a teacher
 			day.add(i.getDay(false));
 			day2.add(i.getDay(true));
-			// day.add(i.getDay());
-			// ls.add(i.getDay());
-			inputs.add(i.generateInputs());
-			// end of life get run 
 			if(i.getDeath()) death_runs.add(i.getRuns());
-			// If the animat reaches the end
 			if(i.getReached_end()) reward_list.add(new String[]{Integer.toString(i.getId())});
-			// if water animat dies
 		}
 		// remove dead
 		while(iterator.hasNext()) {
@@ -184,7 +179,6 @@ public class AnimatCollection {
 		rdf.multiDaySave("Runners", multiple_days);
 		rdf.saveRun("Dead-Runs", death_runs);
 		rdf.saveRun("Reward-Runs", reward_list);
-		rdf.saveInputs("Inputs", inputs);
 		rdf.saveRun("MultiDay", rdf.multiDayConversion(multiple_days_2), new String[] {"Animat","Lifespan","Location x","Location y","Teacher","Reached end"});
 		rdf.saveRun("AllAnimats", all_animats, new String[] {"Animat","Lifespan","Teacher","Reached end"});
 	}
@@ -213,6 +207,22 @@ public class AnimatCollection {
 					System.out.print("Animat: "+animat_no+" Nearest stone: "+i[1]+" Distance to water: "+i[2]+" Distance from start: "+i[3]+" Distance to end: "+i[4]+" Has stone: "+i[5]+"\n");
 					count++;
 				}
+			}
+		}
+	}
+
+	public ArrayList<ObjectCollection> fitness() {
+		ArrayList<ObjectCollection> ob = new ArrayList<>();
+		for(Animat i: ani) {
+			ob.add(i.map());
+		}
+		return ob;
+	}
+
+	public void mutate() {
+		if(generation >0){
+			for(Animat i: ani) {
+				i.mutate();
 			}
 		}
 	}

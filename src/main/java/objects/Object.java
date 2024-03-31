@@ -48,6 +48,14 @@ public abstract class Object implements Drawable{
 		if (ENVIRONMENT_TYPE) this.iota = 0;
 		else this.iota = 1;
 	}
+
+	public Integer x(){
+		return x_pos;
+	}
+
+	public Integer y(){
+		return y_pos;
+	}
 	/**
 	 *
 	 * @return current x position
@@ -152,6 +160,17 @@ public abstract class Object implements Drawable{
 		return moveable;
 	}
 
-	public abstract Color getColor();
+	public Color getColor() {
+		if(iota == 0)return Color.GREEN;
+		if(iota < 0 )return Color.RED;
+		else return Color.YELLOW;
+	}
+	public void localConnections() {
+	}
+
+	public double distance(Object object) {
+		// Euclidean distance from current object to another object
+		return Math.max(0,Math.sqrt(Math.pow(this.x_pos - object.x_pos, 2) + Math.pow(this.y_pos - object.y_pos, 2)));
+	}
 
 }

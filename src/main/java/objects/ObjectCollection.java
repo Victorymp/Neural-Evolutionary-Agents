@@ -93,8 +93,38 @@ public class ObjectCollection {
 		return water;
 	}
 
-	public void setIota(int x, int y, double value) {
-		inStack(x,y).setIota(value);
+	// sets all iota vales of a given object
+	public void setIota(Object type, double value) {
+		for(Object i: object_list) {
+			if(i.getClass() == type.getClass()) {
+				i.setIota(value);
+				activation_map[i.getX()][i.getY()] = value;
+			}
+		}
+	}
+
+	// sets all the iota in a local negihborhood which is 4x4 around the current object
+	public void setIota(Class type, double value, int x, int y) {
+		for(Object i: object_list) {
+			if(i.getX() >= x-2 && i.getX() <= x+2 && i.getY() >= y-2 && i.getY() <= y+2) {
+				// check if the object is of the same type
+				if(i.getClass() == type) {
+					i.setIota(value);
+					activation_map[i.getX()][i.getY()] = value;
+				}
+			}
+		}
+	}
+
+	// return a list of the 4x4 neighborhood
+	public ArrayList<Object> getNeighborhood(int x, int y) {
+		ArrayList<Object> temp = new ArrayList<>();
+		for(Object i: object_list) {
+			if(i.getX() >= x-2 && i.getX() <= x+2 && i.getY() >= y-2 && i.getY() <= y+2) {
+				temp.add(i);
+			}
+		}
+		return temp;
 	}
 
 	public int inStackIndex(int x, int y) {
@@ -189,8 +219,19 @@ public class ObjectCollection {
 
 	}
 
+	public void fitness() {
+		ObjectCollection ob = this;
+		for(Object i: object_list) {
+			if(i.getClass() == Stone.class) {
+				i.setIota(15);
+			} else if(i.getClass() == Water.class) {
+				i.setIota(-15);
+			} else if(i.getClass() == Resource.class) {
+				i.setIota(15);
+			} else if(i.getClass() == Grass.class) {
+				i.setIota(0);
+			}
+		}
 
-	public Double getIota(int xPos, int yPos) {
-		return inStack(xPos, yPos).getIota();
 	}
 }

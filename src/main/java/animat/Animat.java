@@ -9,12 +9,10 @@ import java.util.Stack;
 import java.lang.Math;
 
 import dataFrame.DataFrame;
-import objects.Grass;
-import objects.Object;
-import objects.ObjectCollection;
-import objects.Stone;
+import objects.*;
 
 import neuralNetwork.NeuralNetwork;
+import objects.Object;
 
 public class Animat {
 	private int health;
@@ -25,7 +23,6 @@ public class Animat {
 	private final int id;
 	private final Action action;
 	private List<String[]> run_list;
-	private DataFrame rdf;
 	private int lifeSpan;
 	private final DataFrame df;
 	private final Boolean teacher;
@@ -35,9 +32,14 @@ public class Animat {
 	private Boolean reached_end;
 
 	private Object current_object;
-	private Stack<Object> path;
 
+	private Object next_object;
+	private Stack<Object> path;
 	private NeuralNetwork nn;
+
+	private String[] inputs;
+
+	private double fitness;
 
 	public Animat(int x_pos, int y_pos, int id, Boolean teachers, ObjectCollection object_map_location) {
 		this.object_map_location = object_map_location;
@@ -56,8 +58,10 @@ public class Animat {
 		reached_end = false;
 		path = new Stack<>();
 		current_object = object_map_location.inList(x_pos, y_pos);
+		fitness = 0;
+		next_object = new Grass(getX(),getY());
 		// Initialize the neural network
-		nn = new NeuralNetwork(5, 4, 67, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
+		nn = new NeuralNetwork(4, 3, 4, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
 	}
 
 	@Override
@@ -119,9 +123,9 @@ public class Animat {
 			pickUpStone();
 			// move if you're not on the water
 			// Implementation of shunting netwok
-			if (y_pos != 2) moveBlock();
+			if (y_pos != 2) shuntingNetwork();
 				// move if you're on the water and have a stone
-			else if (has_stone != null) moveBlock();
+			else if (has_stone != null) shuntingNetwork();
 				// die if you're on the water and dont have a stone
 			else die();
 		}
@@ -162,16 +166,11 @@ public class Animat {
 		return teacher;
 	}
 
-	public void saveRuns() {
-		rdf.saveRun(run_list);
-	}
 
 	/**
 	 * Gets the teachers from the memory
 	 */
 	private void getTeachers() {
-		//System.out.println(df.openMemory("Runners"));
-		//ArrayList<Object> teachers = df.openMemory("Runners");
 		df.openMemory("Runners");
 	}
 
@@ -239,43 +238,46 @@ public class Animat {
 	}
 
 	/**
-	 * Generates neural network inputs
+	 * Generates neural network inputs.
+	 * Inputs are current facts and this is the process of getting the inputs
 	 */
-	public String[] generateInputs() {
-		//distance to the closest stone
-		Double distance_to_nearest_stone = distanceToObject(Stone.class, object_map_location);
-		//distance to the closest water
-		Double distance_to_water = distance(getX(), getY(), getX(), 2);
-		//distance to the start
-		Double distance_from_start = distance(getX(), getY(), 10, 19);
-		//distance to the end
-		Double distance_to_end = distance(getX(), getY(), 10, 1);
-		//has stone
-		int has_stone = 0;
-		if (hasStone() != null) {
-			has_stone = 1;
-		}
-		// is current object moveable
-		if (current_object != null) {
-			if (current_object.getClass() == Grass.class) {
-				}
-		}
-
-		ArrayList<Double> inputs = new ArrayList<>();
-		// Set the Iota input values
-		inputs.add(object_map_location.getIota(x_pos, y_pos));
-		// Is the animat carrying a stone
-		inputs.add((double) has_stone);
-		// Is the object moveable
-        inputs.add(current_object.getMoveable());
-		// Distance to the nearest stone
-		// inputs.add(distance_to_nearest_stone);
-		//inputs.add(distance_to_water);
-		inputs.add(distance_from_start);
-		inputs.add(distance_to_end);
-		return new String[]{"" + inputs.get(0), "" + inputs.get(1), "" + inputs.get(2), "" + inputs.get(3), "" + inputs.get(4)};
+	public double[] generateInputs() {
+		double[] inputs = new double[4];
+		// Represents reachable states from current state
+		// Getting the neighbouring objects
+		double is_grass = 0;
+		double has_stone = 0;
+		double is_resource = 0;
+		double is_water = 0;
+		if(current_object.getClass() == Water.class) is_water = 1;
+		if(current_object.getClass() == Grass.class) is_grass = 1;
+		if (hasStone() != null) has_stone = 1;
+		if (current_object.getClass() == Resource.class) is_resource = 1;
+		inputs[0] = is_grass;
+		inputs[1] = is_resource;
+		inputs[2] = has_stone;
+		inputs[3] = is_water;
+		return inputs;
 
 	}
+
+	public ArrayList<Object> receptiveField(){
+		ArrayList<Object> receptiveField = new ArrayList<>();
+		// Getting the neighbouring objects
+		receptiveField.add(object_map_location.inList(current_object.getX(), (current_object.getY()+1)));
+		receptiveField.add(object_map_location.inList((current_object.getX()+1), (current_object.getY()+1)));
+		receptiveField.add(object_map_location.inList((current_object.getX()+1), (current_object.getY())));
+		receptiveField.add(object_map_location.inList((current_object.getX()+1), (current_object.getY()-1)));
+		receptiveField.add(object_map_location.inList((current_object.getX()), (current_object.getY()-1)));
+		receptiveField.add(object_map_location.inList((current_object.getX()-1), (current_object.getY()-1)));
+		receptiveField.add(object_map_location.inList((current_object.getX()-1), (current_object.getY())));
+		receptiveField.add(object_map_location.inList((current_object.getX()-1), (current_object.getY()+1)));
+		for (Object i: receptiveField){
+			System.out.println(i);
+		}
+		return receptiveField;
+	}
+
 
 	/**
 	 * Picks up the stone
@@ -291,16 +293,32 @@ public class Animat {
 		}
 	}
 
-	private void moveBlock() {
+	private void shuntingNetwork() {
+
 		if (has_stone != null && y_pos <= 2) {
-			this.reached_end = true;
+			return;
 		}
 		Random r = new Random();
 		// current object
 		current_object = object_map_location.inList(getX(), getY());
+		ArrayList<Object> neighbourhood = object_map_location.getNeighborhood(getX(), getY());
 		decisionNetwork();
-		int rand = r.nextInt(3);
+		for(Object i: neighbourhood){
+			if(!path.contains(i) && isInBounds(i)){
+				next_object = i;
+				path.push(next_object);
+			}
+		}
 		lifeSpan += 1;
+		// if the next object is not in the path
+		if(next_object.getIota() > current_object.getIota()){
+			// update move to the next object
+			System.out.println("Next object: "+next_object);
+			updateMoves(next_object.x() - getX(), next_object.y() - getY());
+			return;
+		}
+		System.out.println("Current object: "+current_object);
+		int rand = r.nextInt(3);
 		switch (rand) {
 			case 0:
 				action.setAc("back");
@@ -328,46 +346,82 @@ public class Animat {
 		double iota;
 		current_object = object_map_location.inList(getX(), getY());
 		// Set the inputs to the neural network
-		String[] inputs = generateInputs();
-		double[] inputValues = new double[inputs.length];
-		for (int i = 0; i < inputs.length; i++) {
-			inputValues[i] = Double.parseDouble(inputs[i]);
-		}
-		// Input iota values
-		// object_map_location.setIota(x_pos, y_pos, 0);
 
+		// Input iota values
+		// If the object is moveable, set the Iota value to 1 Environment type is boolean
 		if (current_object.ENVIRONMENT_TYPE) {
 			iota = 1;
 		} else {
 			iota = -1;
 		}
 		// Get the output values
-		double[] outputValues = nn.feedForward(inputValues,iota);
-
+		double[] outputValues = nn.feedForward(generateInputs(),iota);
+		setIota(outputValues[1], Grass.class);
+		setIota(outputValues[2], Resource.class);
+		setIota(outputValues[3], Water.class);
+		// Using the neural network output values, set the Iota values and determine the pick-up/put-down actions
 		// Based on the output values, set the Iota values and determine the pick-up/put-down actions
-		for (int i = 0; i < object_map_location.getActivationMap().length; i++) {
-			if(current_object != null && current_object.getClass() != Grass.class){
-				if (outputValues[i] > 0.3) {
-					// Set the Iota value to +15 or pick up the object
-					// object_map_location.setIota(x_pos, y_pos, 15);
-					current_object.setIota(15);
-				} else if (outputValues[i] < -0.3) {
-					// Set the Iota value to -15 or put down the object
-					// object_map_location.setIota(x_pos, y_pos, -15);
-					current_object.setIota(-15);
-				} else {
-					// Set the Iota value to 0
-					// object_map_location.setIota(x_pos, y_pos, 0);
-					current_object.setIota(0);
-				}
-			} else if (current_object != null && current_object.getClass() == Grass.class ) {
-				current_object.setIota(0);
+//		for (int i = 0; i < outputValues.length; i++) {
+//			if(current_object != null && current_object.getClass() != Grass.class){
+//				if (outputValues[i] > 0.3) {
+//					// Set the Iota value to +15 or pick up the object
+//					object_map_location.setIota(current_object, 15, current_object.x(), current_object.y());
+//				} else if (outputValues[i] < -0.3) {
+//					// Set the Iota value to -15 or put down the object
+//					object_map_location.setIota(current_object, -15, current_object.x(), current_object.y());
+//				} else {
+//					// Set the Iota value of objects of the same type to 0
+//					object_map_location.setIota(current_object, 0, current_object.x(), current_object.y());
+//				}
+//			} else if (current_object != null && current_object.getClass() == Grass.class ) {
+//				current_object.setIota(0);
+//			}
+//		}
+	}
+
+	private void setIota(double outputValues, Class object){
+		if(current_object != null && current_object.getClass() != Grass.class){
+			if (outputValues > 0.3) {
+				// Set the Iota value to +15 or pick up the object
+				object_map_location.setIota(object, 15, current_object.x(), current_object.y());
+			} else if (outputValues < -0.3) {
+				// Set the Iota value to -15 or put down the object
+				object_map_location.setIota(object, -15, current_object.x(), current_object.y());
+			} else {
+				// Set the Iota value of objects of the same type to 0
+				object_map_location.setIota(object, 0, current_object.x(), current_object.y());
 			}
+		} else if (current_object != null && current_object.getClass() == Grass.class ) {
+			current_object.setIota(0);
 		}
 	}
 
 
+
+	private boolean isInBounds(Object current) {
+		// Implement this method to check if the cell (x, y) is within the bounds of the environment.
+		if(current.x() < 0 || current.x() > 20 || current.y() < 0 || current.y() > 20){
+			return false;
+		} return true;
+	}
 	public Boolean getReached_end() {
 		return reached_end;
+	}
+
+	public ObjectCollection map() {
+		// TODO Auto-generated method stub
+		return object_map_location;
+	}
+
+	public void addFitness(){
+		this.fitness += 1;
+	}
+
+	public void fitness(){
+		System.out.println(id+": "+fitness);
+	}
+
+	public void mutate(){
+		nn.mutate();
 	}
 }

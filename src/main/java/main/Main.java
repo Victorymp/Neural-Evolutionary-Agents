@@ -32,12 +32,11 @@ public class Main extends Application {
         primaryStage.setTitle("Social learning");
         // visual board
         createMap();
-		//creating generations
-		AnimatCollection generation = new AnimatCollection(1, objects_arraylist);
-		//starts generation with 100 animats
-		generation.startGeneration(100);
-        Rules rules = new Rules(generation, objects_list, objects_arraylist);
+
+        Rules rules = new Rules(objects_list, objects_arraylist);
+		// sim start
 		rules.Start();
+		Map start_map = new Map(20, objects_arraylist);
 		Map activation_map = Map.createMap(rules.getObjectCollection());
 		activation_map.generateMap();
         primaryStage.setScene(activation_map.createScene());
