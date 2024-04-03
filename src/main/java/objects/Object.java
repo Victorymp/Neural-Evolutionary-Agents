@@ -2,7 +2,7 @@ package objects;
 
 import java.util.ArrayList;
 
-import javafx.scene.paint.Color;
+import java.awt.*;
 import shape.Drawable;
 
 public abstract class Object implements Drawable{

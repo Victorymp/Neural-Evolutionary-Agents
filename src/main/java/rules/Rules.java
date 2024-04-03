@@ -7,6 +7,7 @@ import java.util.List;
 import animat.Animat;
 import animat.AnimatCollection;
 
+import main.Main;
 import objects.Object;
 import objects.ObjectCollection;
 import objects.Water;
@@ -25,7 +26,12 @@ public class Rules {
 
 	private ObjectCollection objectCollection;
 
-	public Rules( Object[][] ob, ObjectCollection ob_list) {
+	private int current_generation = 0;
+
+	private Main main;
+
+	public Rules(Main main, Object[][] ob, ObjectCollection ob_list) {
+		this.main = main;
 		this.ani_list = new AnimatCollection(0, ob_list);
 		this.ob = ob;
 		this.ob_list = ob_list;
@@ -84,7 +90,12 @@ public class Rules {
 			int size = ani_list.getSize();
 			ani_list = new AnimatCollection(i+1, ob_list);
 			ani_list.startGeneration(size);
-
+			current_generation++;
+			main.updateMap(ob_list);
 		}
+	}
+
+	public int getGeneration() {
+		return current_generation;
 	}
 }

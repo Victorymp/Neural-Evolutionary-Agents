@@ -4,6 +4,7 @@ module com.sociallearning.sociallearning{
 
     requires org.kordamp.bootstrapfx.core;
     requires com.opencsv;
+    requires java.desktop;
 
     opens com.sociallearning.sociallearning to javafx.fxml;
     exports main;
