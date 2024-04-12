@@ -1,10 +1,6 @@
 package animat;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.Stack;
+import java.util.*;
 
 import java.lang.Math;
 
@@ -18,8 +14,6 @@ public class Animat {
 	private int health;
 	private int x_pos;
 	private int y_pos;
-	private final Integer[] locations;
-	private final HashMap<Action, Integer[]> runs;
 	private final int id;
 	private final Action action;
 	private List<String[]> run_list;
@@ -41,21 +35,19 @@ public class Animat {
 
 	private double fitness;
 
-	public Animat(int x_pos, int y_pos, int id, Boolean teachers, ObjectCollection object_map_location) {
+	private Boolean has_resource;
+
+	public Animat(int x_pos, int y_pos, int id, boolean teachers, ObjectCollection object_map_location) {
 		this.object_map_location = object_map_location;
-		locations = new Integer[2];
 		this.x_pos = x_pos;
 		this.y_pos = y_pos;
-		locations[0] = x_pos;
-		locations[1] = y_pos;
 		health = 100;
 		this.id = id;
 		action = new Action();
-		runs = new HashMap<>();
 		lifeSpan = 0;
 		df = new DataFrame();
-		this.teacher = teachers;
-		reached_end = false;
+		this.teacher = (Boolean) teachers;
+		reached_end = (Boolean) false;
 		path = new Stack<>();
 		current_object = object_map_location.inList(x_pos, y_pos);
 		fitness = 0;
@@ -86,13 +78,8 @@ public class Animat {
 		if(x_pos>20) x_pos = 20;
 		if(y_pos<0) y_pos = 0;
 		if(y_pos>20) y_pos = 20;
-
 		current_object = object_map_location.inList(x_pos, y_pos);
-		updateLocation();
-		run();
-		this.getTeachers();
-		generateInputs();
-		path.push(object_map_location.inStack(x_pos, y_pos));
+		path.push(current_object);
 	}
 
 	public void setObject_map_location(ObjectCollection object_map_location) {
@@ -118,16 +105,24 @@ public class Animat {
 	 */
 	public void move() {
 		// if you're not dead
-		if (health > 0) {
-			// can I pick up the stone
-			pickUpStone();
+		if (health > 0 && !reached_end) {
+			evaluateFitness();
+			lifeSpan += 1;
+			pickUp();
+			//putDown();
 			// move if you're not on the water
 			// Implementation of shunting netwok
 			if (y_pos != 2) shuntingNetwork();
-				// move if you're on the water and have a stone
+			// move if you're on the water and have a stone
 			else if (has_stone != null) shuntingNetwork();
-				// die if you're on the water and dont have a stone
+			// die if you're on the water and dont have a stone
 			else die();
+		}
+	}
+
+	private void putDown() {
+		if (has_stone != null && current_object.getClass() == Water.class) {
+			has_stone = null;
 		}
 	}
 
@@ -151,7 +146,7 @@ public class Animat {
 	}
 
 	public Boolean getDeath() {
-		return health <= 0;
+		return (health <= 0);
 	}
 
 	public int getLifeSpan() {
@@ -159,29 +154,7 @@ public class Animat {
 	}
 
 	public void die() {
-		health -= 100;
-	}
-
-	public Boolean getTeacher() {
-		return teacher;
-	}
-
-
-	/**
-	 * Gets the teachers from the memory
-	 */
-	private void getTeachers() {
-		df.openMemory("Runners");
-	}
-
-	public void run() {
-		// mapping action and location together
-		runs.put(action.getAc(lifeSpan), locations);
-	}
-
-	private void updateLocation() {
-		locations[0] = getX();
-		locations[1] = getY();
+		health =0;
 	}
 
 	private Boolean hasStone() {
@@ -191,47 +164,20 @@ public class Animat {
 	//loacte stone
 
 	/**
-	 * Locates the closes stone
-	 *
-	 * @param objectCollection
-	 * @return returns array of the location of the closes stone
+	 * Get the class of the object at the current location
+	 * @param aClass
+	 * @return
 	 */
-	public ArrayList<Double> locateStone(ObjectCollection objectCollection) {
-		Stack<Object> temp = objectCollection.getObjects(Stone.class);
-		ArrayList<Double> temp_loc = new ArrayList<>();
-		for (Object i : temp) {
-			//distance formula
-			Double distance_to_nearest_stone = Math.sqrt(Math.pow((getX() - i.getX()), 2) + Math.pow((getY() - i.getY()), 2));
-			temp_loc.add(distance_to_nearest_stone);
+	private Object getClass(Class aClass) {
+		Object currentObject = object_map_location.inList(x_pos, y_pos);
+		// removes the need to loop over all the objects
+		// if the object is of the same class as the current object
+		if (aClass.isInstance(currentObject)) {
+			return currentObject;
 		}
-		return temp_loc;
+		return null;
 	}
 
-	/**
-	 * Distance to the closest object
-	 *
-	 * @param aClass
-	 * @param objectCollection
-	 * @return Distances
-	 */
-	public double distanceToObject(Class aClass, ObjectCollection objectCollection) {
-		Stack<Object> temp = objectCollection.getObjects(aClass);
-		ArrayList<Double> temp_loc = new ArrayList<>();
-		double count = 0.0;
-		// closest stone to the start
-		double prev = distance(getX(), getY(), 9, 13);
-		double min = distance(getX(), getY(), 9, 13);
-		for (Object i : temp) {
-			//distance formula
-			double distance_to_nearest_stone = Math.sqrt(Math.pow((getX() - i.getX()), 2) + Math.pow((getY() - i.getY()), 2));
-			if (distance_to_nearest_stone < prev) {
-				min = distance_to_nearest_stone;
-			}
-			temp_loc.add(distance_to_nearest_stone);
-			prev = distance_to_nearest_stone;
-		}
-		return min;
-	}
 
 	private Double distance(int x_first, int y_first, int x_second, int y_second) {
 		return Math.sqrt(Math.pow((x_second - x_first), 2) + Math.pow((y_second - y_first), 2));
@@ -239,9 +185,10 @@ public class Animat {
 
 	/**
 	 * Generates neural network inputs.
-	 * Inputs are current facts and this is the process of getting the inputs
+	 * Inputs are current facts that are present in the same location as it and this is the process of getting the inputs
+	 * With inputs being 1 or 0
 	 */
-	public double[] generateInputs() {
+	private double[] generateInputs() {
 		double[] inputs = new double[4];
 		// Represents reachable states from current state
 		// Getting the neighbouring objects
@@ -257,11 +204,11 @@ public class Animat {
 		inputs[1] = is_resource;
 		inputs[2] = has_stone;
 		inputs[3] = is_water;
-		return inputs;
+        return inputs;
 
-	}
+    }
 
-	public ArrayList<Object> receptiveField(){
+	 ArrayList<Object> receptiveField(){
 		ArrayList<Object> receptiveField = new ArrayList<>();
 		// Getting the neighbouring objects
 		receptiveField.add(object_map_location.inList(current_object.getX(), (current_object.getY()+1)));
@@ -282,43 +229,32 @@ public class Animat {
 	/**
 	 * Picks up the stone
 	 */
-	private void pickUpStone() {
-		for (Double i : locateStone(object_map_location)) {
-			if (i == 0) {
-				//pick up the stone
-				has_stone = true;
-				//remove the stone from the map.map
-				return;
-			}
-		}
+	void pickUp() {
+		// if the animat is on the stone
+		// if the animat is on the resource
+		if(getClass(Stone.class) != null) has_stone = true;
+		if(getClass(Resource.class) != null) has_resource =true;
 	}
 
-	private void shuntingNetwork() {
+	void shuntingNetwork() {
+		// if the animat is on the water and does not have a stone
+		if (shouldDie()) {
+			die();
+			return;
+		}
 
-		if (has_stone != null && y_pos <= 2) {
+		if (hasReachedEnd()) {
+			reachedEnd();
 			return;
 		}
 		Random r = new Random();
 		// current object
 		current_object = object_map_location.inList(getX(), getY());
-		ArrayList<Object> neighbourhood = object_map_location.getNeighborhood(getX(), getY());
+		ArrayList<Object> neighbourhood = object_map_location.getNeighborhood(current_object.getX(),current_object.getY());
 		decisionNetwork();
-		for(Object i: neighbourhood){
-			if(!path.contains(i) && isInBounds(i)){
-				next_object = i;
-				path.push(next_object);
-			}
-		}
-		lifeSpan += 1;
-		// if the next object is not in the path
-		if(next_object.getIota() > current_object.getIota()){
-			// update move to the next object
-			System.out.println("Next object: "+next_object);
-			updateMoves(next_object.x() - getX(), next_object.y() - getY());
-			return;
-		}
-		System.out.println("Current object: "+current_object);
-		int rand = r.nextInt(3);
+		plan(neighbourhood);
+
+		int rand = r.nextInt(4);
 		switch (rand) {
 			case 0:
 				action.setAc("back");
@@ -342,44 +278,20 @@ public class Animat {
 	/**
 	 * Decision network
 	 */
-	public void decisionNetwork() {
-		double iota;
+	 void decisionNetwork() {
 		current_object = object_map_location.inList(getX(), getY());
 		// Set the inputs to the neural network
 
 		// Input iota values
 		// If the object is moveable, set the Iota value to 1 Environment type is boolean
-		if (current_object.ENVIRONMENT_TYPE) {
-			iota = 1;
-		} else {
-			iota = -1;
-		}
 		// Get the output values
-		double[] outputValues = nn.feedForward(generateInputs(),iota);
+		double[] outputValues = nn.feedForward(generateInputs());
 		setIota(outputValues[1], Grass.class);
 		setIota(outputValues[2], Resource.class);
 		setIota(outputValues[3], Water.class);
-		// Using the neural network output values, set the Iota values and determine the pick-up/put-down actions
-		// Based on the output values, set the Iota values and determine the pick-up/put-down actions
-//		for (int i = 0; i < outputValues.length; i++) {
-//			if(current_object != null && current_object.getClass() != Grass.class){
-//				if (outputValues[i] > 0.3) {
-//					// Set the Iota value to +15 or pick up the object
-//					object_map_location.setIota(current_object, 15, current_object.x(), current_object.y());
-//				} else if (outputValues[i] < -0.3) {
-//					// Set the Iota value to -15 or put down the object
-//					object_map_location.setIota(current_object, -15, current_object.x(), current_object.y());
-//				} else {
-//					// Set the Iota value of objects of the same type to 0
-//					object_map_location.setIota(current_object, 0, current_object.x(), current_object.y());
-//				}
-//			} else if (current_object != null && current_object.getClass() == Grass.class ) {
-//				current_object.setIota(0);
-//			}
-//		}
 	}
 
-	private void setIota(double outputValues, Class object){
+	void setIota(double outputValues, Class object){
 		if(current_object != null && current_object.getClass() != Grass.class){
 			if (outputValues > 0.3) {
 				// Set the Iota value to +15 or pick up the object
@@ -396,21 +308,45 @@ public class Animat {
 		}
 	}
 
-
-
-	private boolean isInBounds(Object current) {
+	boolean isInBounds(Object current) {
 		// Implement this method to check if the cell (x, y) is within the bounds of the environment.
 		if(current.x() < 0 || current.x() > 20 || current.y() < 0 || current.y() > 20){
 			return false;
 		} return true;
+	}
+	void plan(ArrayList<Object> neighbourhood){
+		double start_route = distance(getX(), getY(), next_object.x(), next_object.y());
+		for(Object i: neighbourhood){
+			if(isInBounds(i)){
+				// if the object is a resource goto the object
+				if(i.getClass() == Resource.class){
+					next_object = i;
+					return;
+				}
+				double route = distance(getX(), getY(), i.x(), i.y());
+				// if the route is less than the start route and not going back
+				if(route < start_route && !path.contains(i) ){
+					// if has stone and the object is a stone it cant be next object
+					if(has_stone != null && i.getClass() == Stone.class) {
+						continue;
+					}else {
+						next_object = i;
+					}
+				}
+			}
+		}
 	}
 	public Boolean getReached_end() {
 		return reached_end;
 	}
 
 	public ObjectCollection map() {
-		// TODO Auto-generated method stub
 		return object_map_location;
+	}
+	private void evaluateFitness(){
+		if(has_stone == null) addFitness();
+		if(!reached_end) addFitness();
+
 	}
 
 	public void addFitness(){
@@ -421,7 +357,49 @@ public class Animat {
 		System.out.println(id+": "+fitness);
 	}
 
+	public double getFitness(){
+		return this.fitness;
+	}
+
 	public void mutate(){
+		nn.setMutationRate(5);
 		nn.mutate();
+	}
+
+	public NeuralNetwork getNeuralNetwork(){
+		return nn;
+	}
+
+	public void setNeuralNetwork(NeuralNetwork nn){
+		this.nn = nn;
+	}
+
+	public void crossOver(Animat a, Animat b){
+		nn.crossOver(a.getNeuralNetwork(), b.getNeuralNetwork());
+	}
+
+	public NeuralNetwork getNeuralNetwork(Animat a){
+		return a.getNeuralNetwork();
+	}
+
+	private boolean shouldDie() {
+		return has_stone == null && y_pos <= 2;
+	}
+
+	/**
+	 * Check if the animat has reached the end
+	 * @return boolean
+	 *
+	 **/
+	private boolean hasReachedEnd() {
+		return has_resource != null;
+	}
+
+	private void reachedEnd() {
+		reached_end = true;
+		die();
+	}
+
+	public Stack<Object> getStack() { return path;
 	}
 }

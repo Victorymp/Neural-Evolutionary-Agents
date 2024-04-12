@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import java.awt.*;
 import shape.Drawable;
+import javafx.scene.paint.Color;
 
 public abstract class Object implements Drawable{
 	// protected Boolean traversable;
@@ -32,21 +33,8 @@ public abstract class Object implements Drawable{
 		this.location = setLocation(x_pos,y_pos);
 		this.attack = 100;
 		this.on_top = false;
-		setEnvironment_type();
-	}
-	private void setEnvironment_type() {
-		if (this instanceof Water){
-			ENVIRONMENT_TYPE = true;
-		}
-		else if (this instanceof Grass){
-			ENVIRONMENT_TYPE = true;
-		}
-		else if (this instanceof Stone){
-			ENVIRONMENT_TYPE = false;
-		}
+		this.iota = 0;
 
-		if (ENVIRONMENT_TYPE) this.iota = 0;
-		else this.iota = 1;
 	}
 
 	public Integer x(){
@@ -105,9 +93,10 @@ public abstract class Object implements Drawable{
 	 */
 	public ArrayList<Integer> setLocation(int x_pos,int y_pos){
 		ArrayList<Integer> lc = new ArrayList<>();
-		lc.add(x_pos);
-		lc.add(y_pos);
-		return lc;
+        for (int i : new int[]{x_pos, y_pos}) {
+            lc.add(Integer.valueOf(i));
+        }
+        return lc;
 	}
 
 	/**
@@ -160,7 +149,7 @@ public abstract class Object implements Drawable{
 		return moveable;
 	}
 
-	public Color getColor() {
+	public javafx.scene.paint.Paint getColor() {
 		if(iota == 0)return Color.GREEN;
 		if(iota < 0 )return Color.RED;
 		else return Color.YELLOW;

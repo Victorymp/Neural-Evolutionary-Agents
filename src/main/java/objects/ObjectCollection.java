@@ -1,33 +1,30 @@
 package objects;
 
+import animat.Animat;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Stack;
 
 public class ObjectCollection {
 
-	private Stack<Object> object_stack;
+	private static final int GRID_SIZE = 20;
 
-	private ArrayList<Object> object_list;
+	private Stack<Object> objectStack;
+	private ArrayList<Object> objectList;
+	private double[][] activationMap;
+	private Object[][] nullLocation;
 
-	private double[][] activation_map;
-
-	private Object[][] null_location;
-
-    public ObjectCollection() {
-		object_stack = new Stack<>();
-		// Values held in the object map.map are Iota values
-        activation_map = new double[21][21];
-
-		object_list = new ArrayList<>();
-		null_location = new Object[21][21];
+	public ObjectCollection() {
+		objectStack = new Stack<>();
+		activationMap = new double[GRID_SIZE + 1][GRID_SIZE + 1];
+		objectList = new ArrayList<>();
+		nullLocation = new Object[GRID_SIZE + 1][GRID_SIZE + 1];
 	}
 
-	public void createMap(){
-		// 100 rectangles grid
-		// 20x20 grid
-		for (int y = 0; y < 20; y++) {
-			for (int x = 0; x < 20; x++) {
+	public void createMap() {
+		for (int y = 0; y < GRID_SIZE; y++) {
+			for (int x = 0; x < GRID_SIZE; x++) {
 				Grass grass = new Grass(x, y);
 				addObject(grass);
 			}
@@ -35,203 +32,102 @@ public class ObjectCollection {
 	}
 
 	public double[][] getActivationMap() {
-		return activation_map;
+		return activationMap;
 	}
-	public Stack<Object> getStack(){
-		return object_stack;
+
+	public Stack<Object> getStack() {
+		return objectStack;
+	}
+
+	public void removeObject(Object ob) {
+		objectList.remove(ob);
 	}
 
 	public void createNewStack() {
-		object_stack = new Stack<>();
+		objectStack = new Stack<>();
 	}
-
-
 
 	public void addObject(Object ob) {
-		// check if object already exists
-		if(object_list.contains(ob) || ob.getX() < 0 || ob.getX() > 20 || ob.getY() < 0 || ob.getY() > 20) {
-			System.out.println("Object already exists");
-			return;
+		if (objectList.contains(ob) || isOutOfBounds(ob.getX(), ob.getY())) {
+			throw new IllegalArgumentException("Object already exists or is out of bounds");
 		}
-		object_stack.push(ob);
-		object_list.add(ob);
-		activation_map[ob.getX()][ob.getY()] = 0;
-		if(ob.getClass() == Stone.class) {
-			activation_map[ob.getX()][ob.getY()] = 0;
+		objectStack.push(ob);
+		objectList.add(ob);
+		activationMap[ob.getX()][ob.getY()] = 0;
+		nullLocation[ob.getX()][ob.getY()] = ob;
+		if (ob.getClass() == Stone.class) {
+			activationMap[ob.getX()][ob.getY()] = 0;
 		}
-		//sortList();
-		//System.out.println("add "+ob.getClass()+ " x: "+ob.x_pos+" y: "+ob.y_pos);
 	}
 
-	public Object inStack(int x, int y) {
-		for(Object i: object_stack) {
-			if(i.getX().equals(x) && i.getY().equals(y)) {
-				return i;
-			}
-		}
-		return null;
+	private boolean isOutOfBounds(int x, int y) {
+		return x < 0 || x > GRID_SIZE || y < 0 || y > GRID_SIZE;
 	}
 
 	public Object inList(int x, int y) {
-		for(Object i: object_list) {
-			if(i.getX() == x && i.getY() == y) {
+		for (Object i : objectList) {
+			if (i.getX() == x && i.getY() == y) {
 				return i;
 			}
 		}
-		if(x < 0 || x > 20 || y < 0 || y > 20) {
-			Grass grass = new Grass(x, y);
-			addObject(grass);
-			return grass;
+		if (isOutOfBounds(x, y)) {
+			return null;
 		}
-		null_location[x][y] = new Grass(x, y);
-		if(y !=2){
-		Grass grass = new Grass(x, y);
-		addObject(grass);
-		return grass;}
-		Water water = new Water(x, y);
-		addObject(water);
-		return water;
+		return createAndAddNewObject(x, y);
 	}
 
-	// sets all iota vales of a given object
-	public void setIota(Object type, double value) {
-		for(Object i: object_list) {
-			if(i.getClass() == type.getClass()) {
-				i.setIota(value);
-				activation_map[i.getX()][i.getY()] = value;
-			}
-		}
+	private Object createAndAddNewObject(int x, int y) {
+		// If y is not 2, create a grass object, otherwise create a water object
+		Object obj = y != 2 ? new Grass(x, y) : new Water(x, y);
+		addObject(obj);
+		return obj;
 	}
 
-	// sets all the iota in a local negihborhood which is 4x4 around the current object
-	public void setIota(Class type, double value, int x, int y) {
-		for(Object i: object_list) {
-			if(i.getX() >= x-2 && i.getX() <= x+2 && i.getY() >= y-2 && i.getY() <= y+2) {
-				// check if the object is of the same type
-				if(i.getClass() == type) {
-					i.setIota(value);
-					activation_map[i.getX()][i.getY()] = value;
+	public ArrayList<Object> getLists() {
+		return objectList;
+	}
+
+	public ArrayList<Object> getNeighborhood(int x, int y) {
+		ArrayList<Object> neighborhood = new ArrayList<>();
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				// Check if the neighbor is within the grid
+				if (x + i >= 0 && x + i < GRID_SIZE && y + j >= 0 && y + j < GRID_SIZE) {
+					// neighborhood is a objects touching the object at x, y
+					neighborhood.add(nullLocation[x + i][y + j]);
 				}
 			}
 		}
+		return neighborhood;
 	}
 
-	// return a list of the 4x4 neighborhood
-	public ArrayList<Object> getNeighborhood(int x, int y) {
-		ArrayList<Object> temp = new ArrayList<>();
-		for(Object i: object_list) {
-			if(i.getX() >= x-2 && i.getX() <= x+2 && i.getY() >= y-2 && i.getY() <= y+2) {
-				temp.add(i);
-			}
-		}
-		return temp;
-	}
-
-	public int inStackIndex(int x, int y) {
-		int count = 0;
-		for(Object i: object_stack) {
-			if(i.getX() == x && i.getY() == y) {
-				return count;
-			}
-			count++;
-		}
-		return -1;
-	}
-
-	public void objectSize() {
-		//sortList();
-		System.out.println(object_list.size());
-	}
-
-	public ArrayList<Object> getLists(){
-		return object_list;
-	}
-
-	public void displayObjects() {
-		for(Object i: object_stack) {
-			System.out.println("x: "+i.getX()+" y: "+i.getY()+" class: "+i.getClass());
-		}
-	}
-
-	/**
-	 * Displays all the objects of a certain class
-	 * @param ob
-	 */
-	public void displayObjects(Class ob) {
-		for(Object i: object_stack) {
-			if(i.getClass() == ob) {
-				System.out.println("x: "+i.getX()+" y: "+i.getY()+" class: "+i.getClass());
-			}
-		}
-	}
-
-	/**
-	 * returns a stack with all the objects of a certain class
-	 * @param ob
-	 */
-	public Stack<Object> getObjects(Class ob) {
-		Stack<Object> temp = new Stack<>();
-		for(Object i: object_stack) {
-			if(i.getClass() == ob) {
-				temp.push(i);
-			}
-		}
-		return temp;
-	}
-
-	// removes a object in the stack
-	public void removeObject(Object ob) {
-		object_stack.remove(ob);
-	}
-
-	/**
-	 * Sort the objects in the list
-	 */
-	private void sortList() {
-		ArrayList<Object> temp = new ArrayList<>();
-		for(int i = 0; i < 20; i++) {
-			for(int j = 0; j < 20; j++) {
-				for(Object k: object_list) {
-					if(k.getX() == i && k.getY() == j) {
-						temp.add(k);
+	public void setIota(Class type, double value, int x, int y) {
+		for (int i = -2; i <= 2; i++) {
+			for (int j = -2; j <= 2; j++) {
+				// Check if the neighbor is within the grid
+				if (x + i >= 0 && x + i < GRID_SIZE && y + j >= 0 && y + j < GRID_SIZE) {
+					Object obj = nullLocation[x + i][y + j];
+					// check if the object is of the same type
+					if (obj != null && obj.getClass() == type) {
+						obj.setIota(value);
+						activationMap[obj.getX()][obj.getY()] = value;
 					}
 				}
 			}
 		}
-		object_list = temp;
 	}
 
-	// displays null locations
-	public void displayNullLocations() {
-		for(Object[] i: null_location) {
-			for(Object j: i) {
-				System.out.println("x: "+j.getX()+" y: "+j.getY());
-			}
+	public ObjectCollection printAnimatJourney(Animat animat){
+		Stack<Object> stack = animat.getStack();
+		ObjectCollection objectCollection = animat.map();
+		while (!stack.isEmpty()) {
+			Object ob = stack.pop();
+			objectCollection.removeObject(ob);
+			objectCollection.addObject(new Path(ob.getX(), ob.getY()));
 		}
+		return objectCollection;
 	}
 
-	// displays the activation map.map
-	public void displayActivationMap() {
-		// sortList();
-		for(Object i:object_list){
-			System.out.println("x: "+i.getX()+" y: "+i.getY()+" Iota: "+i.getIota());
-			}
 
-	}
-
-	public void fitness() {
-		ObjectCollection ob = this;
-		for(Object i: object_list) {
-			if(i.getClass() == Stone.class) {
-				i.setIota(15);
-			} else if(i.getClass() == Water.class) {
-				i.setIota(-15);
-			} else if(i.getClass() == Resource.class) {
-				i.setIota(15);
-			} else if(i.getClass() == Grass.class) {
-				i.setIota(0);
-			}
-		}
-
-	}
+	// ... rest of the class
 }

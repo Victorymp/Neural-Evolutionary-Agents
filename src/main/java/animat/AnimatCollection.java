@@ -4,11 +4,13 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
+import java.util.Random;
 
 import dataFrame.DataFrame;
+import neuralNetwork.NeuralNetwork;
+import objects.Object;
 import objects.ObjectCollection;
-
-import static javafx.application.Platform.exit;
 
 
 public class AnimatCollection {
@@ -24,6 +26,10 @@ public class AnimatCollection {
 	private ArrayList<String[]> reward_list;
 	private int global_day;
 	private ArrayList<ArrayList<String[]>> multiple_days_2;
+	private double lowest_fitness = 10000;
+	private Animat best_1;
+	private Animat best_2;
+	private NeuralNetwork nn;
 
 	public AnimatCollection(int x, ObjectCollection objectCollection) {
 		ani = new ArrayList<>(1000);
@@ -39,10 +45,19 @@ public class AnimatCollection {
 		global_day = 0;
 	}
 
-	public AnimatCollection() {
-		// TODO Auto-generated constructor stub
+	public AnimatCollection(int x, ObjectCollection objectCollection, NeuralNetwork nn) {
 		ani = new ArrayList<>(1000);
-		this.generation = 1;
+		this.generation = x;
+		rdf = new DataFrame();
+		ls = new ArrayList<>();
+		multiple_days = new ArrayList<>();
+		multiple_days_2 = new ArrayList<>();
+		death_runs = new ArrayList<String[]>();
+		reward_list = new ArrayList<String[]>();
+		this.objectCollection = objectCollection;
+		all_animats = new ArrayList<>();
+		global_day = 0;
+		this.nn = nn;
 	}
 	/**
 	 * Generation where all are teachers
@@ -52,18 +67,30 @@ public class AnimatCollection {
 	public void startGeneration(int x){
 		// 20% of the animats are teachers
 		int teachers_percent= (int) Math.round(x*0.2);
+		Random rand = new Random();
+
 		if (x <=1000) {
 			for(int i = 0; i<x; i++) {
 				// if i is less than the percentage of teachers
+				int randomX = rand.nextInt(20);
+				int randomY = rand.nextInt(20);
 				if( i < teachers_percent) {
-					ani.add(new Animat(10,20,i,true,objectCollection));
+					// Starting location is 10,20
+					ani.add(new Animat(randomX,randomY,i,true,objectCollection));
 				} else {
-					ani.add(new Animat(10,20,i, false,objectCollection));
+					ani.add(new Animat(randomX,randomY,i, false,objectCollection));
 				}
 			}
 			System.out.println("Created "+ani.size()+" Animats");
 		} else {
 			System.out.println("Too big");
+		}
+		if(generation > 0) {
+			// if the generation is greater than 0
+			// then it will give the animats the neural network
+			for (Animat i: ani) {
+				i.setNeuralNetwork(nn);
+			}
 		}
 		// Gives the animats the object map.map
 		for (Animat i: ani) {
@@ -102,7 +129,6 @@ public class AnimatCollection {
 	public ArrayList<Animat> getGeneration(){
 		return ani;
 	}
-	
 
 	public int getGen() {
 		return generation;
@@ -130,17 +156,18 @@ public class AnimatCollection {
 				all_animats.add(i.getAnimat());
 			}
 		}
-		for(int i=0; i<= days; i++) {
-			day();	
+		int count= 0;
+		for(int i=0; i< days; i++) {
+			day();
+			count++;
 		}
-		saveDay();
-
+		System.out.print("Generation: "+generation+"\n");
+		System.out.print("Days: "+count+"\n");
 		System.out.print("Deaths at the end of the generation: "+ death_runs.size()+"\n");
 		System.out.print("Reached end at the end of the generation: "+ reward_list.size()+"\n");
 		System.out.print("Animats: "+ ani.size()+"\n");
 	}
 	private void day() {
-		mutate();
 		Iterator<Animat> iterator = ani.iterator();
 		ArrayList<Animat> tmp = new ArrayList<Animat>();
 		ArrayList<String[]> day = new ArrayList<>();
@@ -152,8 +179,8 @@ public class AnimatCollection {
 		 */
 		for(Animat i: ani) {
 			i.move();
-			day.add(i.getDay(false));
-			day2.add(i.getDay(true));
+			day.add(i.getDay(Boolean.valueOf(false)));
+			day2.add(i.getDay(Boolean.valueOf(true)));
 			if(i.getDeath()) death_runs.add(i.getRuns());
 			if(i.getReached_end()) reward_list.add(new String[]{Integer.toString(i.getId())});
 		}
@@ -219,11 +246,90 @@ public class AnimatCollection {
 		return ob;
 	}
 
-	public void mutate() {
+	public void endOfGeneration() {
 		if(generation >0){
+			naturalSelection();
 			for(Animat i: ani) {
+				// cross over with the best
+				i.crossOver(best_1, best_2);
 				i.mutate();
 			}
+		} else {
+			System.out.println("Skipped natural selection");
 		}
+	}
+
+	/**
+	 * Natural selection
+	 * @return the best animat
+	 */
+	private void naturalSelection() {
+		if (ani.isEmpty()) {
+			System.out.println("No animats to select from.");
+			return;
+		}
+
+		double bestFitness = Double.MAX_VALUE;
+		Animat best1 = null;
+		Animat best2 = null;
+
+		for (Animat animat : ani) {
+			// If the fitness is better than the current best, update the best
+			if (animat.getFitness() < bestFitness && !animat.getDeath()) {
+				best2 = best1;
+				best1 = animat;
+				bestFitness = animat.getFitness();
+				lowest_fitness = bestFitness;
+			} else if (animat.getFitness() == bestFitness && !animat.getDeath() ){
+				// Handle equal fitness values here
+				// This is just an example, adjust as needed
+				if (best2 == null || animat.getId() > best2.getId()) {
+					best2 = animat;
+				}
+			}
+		}
+
+		if (best1 == null) {
+			System.out.println("Best animat is null");
+			return;
+		}
+
+		if (best2 == null) {
+			best2 = best1;
+		}
+
+		this.best_1 = best1;
+		this.best_2 = best2;
+	}
+
+	public double getLowestFitness() {
+		return lowest_fitness;
+	}
+
+	public ObjectCollection getObjectCollection() {
+		return objectCollection;
+	}
+
+	public NeuralNetwork getGenerationNeuralNetwork(){
+		if(best_1 != null){
+			return best_1.getNeuralNetwork();
+		} else {
+			naturalSelection();
+			return best_1.getNeuralNetwork();
+		}
+	}
+
+	public Animat getBest_1(){
+        if (best_1 == null)  naturalSelection();
+		System.out.println("Best 1: "+best_1.getId()+" Fitness: "+best_1.getFitness());
+        return best_1;
+    }
+
+	public double getMean() {
+		ArrayList<Double> all_fitness = new ArrayList<>();
+		for (Animat i: ani) {
+			all_fitness.add(Double.valueOf(i.getFitness()));
+		}
+		return all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
 	}
 }

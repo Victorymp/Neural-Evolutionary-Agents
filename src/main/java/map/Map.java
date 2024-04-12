@@ -1,10 +1,12 @@
 package map;
 
-import objects.Object;
+import javafx.scene.Scene;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 import objects.*;
-
-import javax.swing.*;
-import java.awt.*;
+import objects.Object;
 
 public class Map {
     private int size;
@@ -18,86 +20,53 @@ public class Map {
         this.locations = objects;
     }
 
-    public JPanel generateMap() {
-        JPanel board = new JPanel(new GridLayout(size, size));
-        int sides = 40; // length of each box
-
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                JPanel cell = new JPanel();
-                Object obj = locations.inList(x, y);
-                cell.setBackground(obj.getColor());
-                board.add(cell);
-            }
-        }
-
-        return board;
-    }
-
-    // takes a list of objects and creates a map
-    public static Map createMap(ObjectCollection objects) {
-        int size = 20;
-        Object[][] locations = new Object[size][size];
-        ObjectCollection tmp = new ObjectCollection();
-
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                Object obj = objects.inList(x, y);
-                tmp.addObject(obj);
-            }
-        }
-
-        return new Map(size, tmp);
-    }
-
-    public void createMap() {
-        JFrame frame = new JFrame("Map");
-        JPanel board = new JPanel(new GridLayout(20, 20));
-        ObjectCollection objects_arraylist = new ObjectCollection();
-
+    public GridPane generateMap() {
+        GridPane board = new GridPane();
+        // 100 rectangles grid
+        // 5x20 grid
+        int count = 0;
+        double sides = 40; // length of each box
         for (int y = 0; y < 20; y++) {
+            count++;
             for (int x = 0; x < 20; x++) {
-                JPanel cell = new JPanel();
-                Grass grass = new Grass(x, y);
-                Water water = new Water(x, y);
-
+                Rectangle r = new Rectangle(sides, sides, sides, sides);
+                Object obj = locations.inList(x, y);
+                // creating a blue line for the water
                 if (y == 2) {
-                    cell.setBackground(Color.BLUE);
-                    Water[][] objects_list = new Water[0][];
-                    objects_list[x][y] = water;
-                    objects_arraylist.addObject(water);
+                    r.setFill(obj.getColor());
+                    Water water = new Water(x, y);
                 } else if (isStone(x, y)) {
-                    cell.setBackground(Color.LIGHT_GRAY);
-                } else if (x == 10 && y == 19) {
-                    cell.setBackground(Color.BLACK);
-                    objects_arraylist.addObject(grass);
+                    r.setFill(obj.getColor());
+                    // System.out.println("x"+x+"y"+y);
+                } else if (x == 10 & y == 19) {
+                    r.setFill(obj.getColor());
                 } else {
-                    objects_arraylist.addObject(grass);
-                    cell.setBackground(Color.GREEN);
+                    r.setFill(obj.getColor());
                 }
-                board.add(cell);
+                board.add(r, x, y);
             }
         }
+        return board;
 
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 20; j++) {
-                if (objects_arraylist.inList(i, j) == null) {
-                    Grass grass = new Grass(i, j);
-                    objects_arraylist.addObject(grass);
-                }
-            }
-        }
+    }
 
-        frame.add(board);
+    public void createMap(ObjectCollection objects) {
+        this.locations = objects;
+        Stage stage = new Stage();
+        stage.setTitle("Map");
+        GridPane board = generateMap();
+        Scene scene = new Scene(board);
+        stage.setScene(scene);
+        stage.show();
     }
 
     public static ObjectCollection startCollection(){
         objects_arraylist = new ObjectCollection();
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
-                JPanel cell = new JPanel();
                 Grass grass = new Grass(x, y);
                 Water water = new Water(x, y);
+                Resource resource = new Resource(x, y);
                 if(objects_arraylist == null) {
                     objects_arraylist = new ObjectCollection();
                 }
@@ -108,6 +77,8 @@ public class Map {
                     objects_arraylist.addObject(stone);
                 } else if (x == 10 && y == 19) {
                     objects_arraylist.addObject(grass);
+                } else if (x == 5 && y == 0) {
+                    objects_arraylist.addObject(resource);
                 } else {
                     objects_arraylist.addObject(grass);
                 }
@@ -164,4 +135,6 @@ public class Map {
 
         return false;
     }
+
+
 }
