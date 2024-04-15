@@ -44,26 +44,8 @@ public class Rules {
 	 * Starting point for the simulation
 	 */
 	public void Start() {
-		ani_list.startGeneration(100);
-		runGenerations(1940);
-	}
-
-	public ObjectCollection getObjectCollection() {
-		return ob_list;
-	}
-
-	public void fitness() {
-		ArrayList<Double> map =new ArrayList<Double>();
-		ArrayList<Object> temp = objectCollection.getLists();
-		// Checks the current object list
-		for (Object i: temp){
-			map.add(Double.valueOf(i.getIota()));
-		}
-		// Check animat list
-		//for(Animat a: ani){
-			//a.fitness();
-		//}
-
+		ani_list.startGeneration(50);
+		runGenerations(1000);
 	}
 
 	public void runGenerations(int x) {
@@ -71,6 +53,10 @@ public class Rules {
 			System.out.println("Start");
 			// Start the timer
 			//long startTime = System.currentTimeMillis();
+			if(ani_list.getSize() == 0) {
+				System.out.println("No animats left");
+				break;
+			}
 			ani_list.runDays(50);
 			System.out.println("Days ran successfully");
 			ani_list.endOfGeneration();
@@ -82,10 +68,10 @@ public class Rules {
 			System.out.println("Lowest fitness: "+lowest_fitness);
 			generation.add(ani_list);
 			ani_list = new AnimatCollection(i + 1, objectCollection, ani_list.getGenerationNeuralNetwork());
-			ani_list.startGeneration(100);
+			ani_list.startGeneration(50);
 			current_generation++;
 			System.out.println("LifeSpan: "+best.getLifeSpan()+" ID: "+best.getId());
-			// if(i % (x/10) == 0) main.updateMap(best.map().printAnimatJourney(best), points);
+			//if(i % (x/3) == 0) main.updateMap(best.map().printAnimatJourney(best), points);
 		}
 		System.out.println("LifeSpan: "+best.getLifeSpan());
 		main.updateMap(best.map().printAnimatJourney(best), points);

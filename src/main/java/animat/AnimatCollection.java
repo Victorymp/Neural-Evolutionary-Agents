@@ -4,12 +4,10 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
 import java.util.Random;
 
 import dataFrame.DataFrame;
 import neuralNetwork.NeuralNetwork;
-import objects.Object;
 import objects.ObjectCollection;
 
 
@@ -72,8 +70,8 @@ public class AnimatCollection {
 		if (x <=1000) {
 			for(int i = 0; i<x; i++) {
 				// if i is less than the percentage of teachers
-				int randomX = rand.nextInt(20);
-				int randomY = rand.nextInt(20);
+				int randomX = 10;
+				int randomY = 20;
 				if( i < teachers_percent) {
 					// Starting location is 10,20
 					ani.add(new Animat(randomX,randomY,i,true,objectCollection));
@@ -94,7 +92,7 @@ public class AnimatCollection {
 		}
 		// Gives the animats the object map.map
 		for (Animat i: ani) {
-			i.setObject_map_location(objectCollection);
+			i.setObject_map(objectCollection);
 		}
 		}
 	
@@ -118,13 +116,6 @@ public class AnimatCollection {
 			System.out.println("Too big");
 		}
 		}
-	public void nextGeneration() {
-		ArrayList<Animat> tmp = new ArrayList<>();
-		for(Animat i: ani) {
-			tmp.add(i);
-		}
-		ani = tmp;
-	}
 
 	public ArrayList<Animat> getGeneration(){
 		return ani;
@@ -178,19 +169,18 @@ public class AnimatCollection {
 		 * Every Ani is the animat list
 		 */
 		for(Animat i: ani) {
+			// System.out.print("Animat: "+i.getId()+" Moving"+"\n");
 			i.move();
+			// System.out.print("Animat: "+i.getId()+" Moved"+"\n");
 			day.add(i.getDay(Boolean.valueOf(false)));
 			day2.add(i.getDay(Boolean.valueOf(true)));
-			if(i.getDeath()) death_runs.add(i.getRuns());
+			// System.out.print("Animat2: "+i.getId()+"\n");
 			if(i.getReached_end()) reward_list.add(new String[]{Integer.toString(i.getId())});
 		}
-		// remove dead
-		while(iterator.hasNext()) {
-			Animat next = iterator.next();
-			if(next.getDeath()) {
-				iterator.remove();
-			}else {
-				tmp.add(next);
+		// record dead
+		for(Animat i: ani) {
+			if(i.getDeath()) {
+				ls.add(i.getRuns());
 			}
 		}
 		death_runs.add(ls.get(0));
@@ -245,7 +235,9 @@ public class AnimatCollection {
 		}
 		return ob;
 	}
-
+	/**
+	 * End of generation
+	 */
 	public void endOfGeneration() {
 		if(generation >0){
 			naturalSelection();
@@ -262,8 +254,9 @@ public class AnimatCollection {
 	/**
 	 * Natural selection
 	 * @return the best animat
+	 * Selects the best animat and the second best animat
 	 */
-	private void naturalSelection() {
+	void naturalSelection() {
 		if (ani.isEmpty()) {
 			System.out.println("No animats to select from.");
 			return;
@@ -274,7 +267,7 @@ public class AnimatCollection {
 		Animat best2 = null;
 
 		for (Animat animat : ani) {
-			// If the fitness is better than the current best, update the best
+			// If the fitness is better than the current best, update the best and not dead
 			if (animat.getFitness() < bestFitness && !animat.getDeath()) {
 				best2 = best1;
 				best1 = animat;
@@ -288,14 +281,13 @@ public class AnimatCollection {
 				}
 			}
 		}
-
+		Random rand = new Random();
 		if (best1 == null) {
-			System.out.println("Best animat is null");
-			return;
+			best1 = ani.get(rand.nextInt(ani.size()));
 		}
 
 		if (best2 == null) {
-			best2 = best1;
+			best2 = ani.get(rand.nextInt(ani.size()));
 		}
 
 		this.best_1 = best1;
@@ -311,17 +303,12 @@ public class AnimatCollection {
 	}
 
 	public NeuralNetwork getGenerationNeuralNetwork(){
-		if(best_1 != null){
-			return best_1.getNeuralNetwork();
-		} else {
-			naturalSelection();
-			return best_1.getNeuralNetwork();
-		}
-	}
+        return best_1.getNeuralNetwork();
+    }
 
 	public Animat getBest_1(){
-        if (best_1 == null)  naturalSelection();
-		System.out.println("Best 1: "+best_1.getId()+" Fitness: "+best_1.getFitness());
+        if (best_1 == null) naturalSelection();
+		// System.out.println("Best 1: "+best_1.getId()+" Fitness: "+best_1.getFitness());
         return best_1;
     }
 

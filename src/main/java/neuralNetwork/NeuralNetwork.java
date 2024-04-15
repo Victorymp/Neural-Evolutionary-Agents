@@ -70,7 +70,7 @@ public class NeuralNetwork {
             }
             sum += bias_h[i];
             // Activation function at each hidden node
-            hidden[i] = tanh((-A * hidden[i]) + hidden[i] + sum);
+            hidden[i] = tanh(sum);
         }
 
         for (int i = 0; i < this.output_nodes; i++) {
@@ -84,7 +84,7 @@ public class NeuralNetwork {
                 sum += weightsHo[i][j] * hidden[j];
             }
             sum += this.bias_o[i];
-            output[i] = tanh((-A * output[i]) + output[i]+ sum);
+            output[i] = tanh(sum);
         }
         return output;
     }
