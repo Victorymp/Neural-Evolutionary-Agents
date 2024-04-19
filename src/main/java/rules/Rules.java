@@ -50,7 +50,7 @@ public class Rules {
 	 */
 	public void Start() {
 		ani_list.startGeneration(500);
-		runGenerations(2000);
+		runGenerations(3000);
 	}
 
 	public void runGenerations(int x) {
@@ -70,7 +70,7 @@ public class Rules {
 			ani_list = new AnimatCollection(i + 1, objectCollection, ani_list.getGenerationNeuralNetwork());
 			ani_list.startGeneration(500);
 			current_generation++;
-			//if(i % (x/3) == 0) main.updateMap(best.map().printAnimatJourney(best), points, lifespanPoints);
+			// if(i % (x/3) == 0) main.updateMap(best.map(), points, lifespanPoints);
 		}
 		System.out.println("LifeSpan: "+best.getLifeSpan());
 		main.updateMap(best.map(), points, lifespanPoints);

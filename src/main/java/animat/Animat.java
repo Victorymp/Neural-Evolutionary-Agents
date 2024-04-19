@@ -140,7 +140,7 @@ public class Animat {
 			shuntingNetwork();
 			// die if you're on the water and don't have a stone
 			if(current_object.getClass()== Trap.class) die();
-			if(y_pos == 2 && has_stone == null)die();
+			if(current_object.getClass() == Water.class && has_stone == null)die();
 		}
 	}
 
