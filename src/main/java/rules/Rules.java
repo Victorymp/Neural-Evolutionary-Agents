@@ -27,6 +27,8 @@ public class Rules {
 
 	List<Point2D.Float> points = new ArrayList<Point2D.Float>();
 
+	List<Point2D.Float> lifespanPoints = new ArrayList<Point2D.Float>();
+
 
 	private Animat best;
 
@@ -35,7 +37,6 @@ public class Rules {
 		this.ani_list = new AnimatCollection(0, ob_list);
 		this.ob = ob;
 		this.ob_list = ob_list;
-        ArrayList<Animat> ani = ani_list.getGeneration();
 		objectCollection = ob_list;
 		generation = new ArrayList<>();
 		best = new Animat(0, 0, 0, false, ob_list);
@@ -44,8 +45,8 @@ public class Rules {
 	 * Starting point for the simulation
 	 */
 	public void Start() {
-		ani_list.startGeneration(50);
-		runGenerations(1000);
+		ani_list.startGeneration(100);
+		runGenerations(100);
 	}
 
 	public void runGenerations(int x) {
@@ -53,28 +54,27 @@ public class Rules {
 			System.out.println("Start");
 			// Start the timer
 			//long startTime = System.currentTimeMillis();
-			if(ani_list.getSize() == 0) {
-				System.out.println("No animats left");
-				break;
-			}
-			ani_list.runDays(50);
+			System.out.println("Start of generation successfully");
+			ani_list.runDays(500);
 			System.out.println("Days ran successfully");
 			ani_list.endOfGeneration();
 			System.out.println("End of generation successfully");
 			double mean = ani_list.getMean();
+			double mean_lifespan = ani_list.getMeanLifespan();
+			lifespanPoints.add(new Point2D.Float(current_generation, (float) mean_lifespan));
 			points.add(new Point2D.Float(current_generation, (float) mean));
 			best = ani_list.getBest_1();
 			if(ani_list.getLowestFitness() < lowest_fitness) lowest_fitness = ani_list.getLowestFitness();
 			System.out.println("Lowest fitness: "+lowest_fitness);
 			generation.add(ani_list);
 			ani_list = new AnimatCollection(i + 1, objectCollection, ani_list.getGenerationNeuralNetwork());
-			ani_list.startGeneration(50);
+			ani_list.startGeneration(100);
 			current_generation++;
 			System.out.println("LifeSpan: "+best.getLifeSpan()+" ID: "+best.getId());
 			//if(i % (x/3) == 0) main.updateMap(best.map().printAnimatJourney(best), points);
 		}
 		System.out.println("LifeSpan: "+best.getLifeSpan());
-		main.updateMap(best.map().printAnimatJourney(best), points);
+		main.updateMap(best.map(), points, lifespanPoints);
 		System.out.println("End of simulation");
 	}
 

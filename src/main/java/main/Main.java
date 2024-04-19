@@ -9,6 +9,7 @@ import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import map.Map;
 import map.ScatterController;
@@ -32,77 +33,84 @@ import javafx.geometry.Pos;
 public class Main extends  Application {
     Object[][] objects_list = new Object[20][20];
     private static ObjectCollection objects_arraylist;
-    private DataFrame df;
     private Stage primaryStage;
-    private Scene scene;
-    private Pane mapPane;
     private HBox hbox;
 
 
     @FXML
     public ScatterChart scatterChart;
 
-    public static void main(String[] args) {
-        objects_arraylist = Map.startCollection();
-        launch(args);
-    }
+    @FXML
+    public ScatterChart scatterChartLifespan;
 
-    public Main() throws IOException {
-        df = new DataFrame();
+    public static void main(String[] args) {
+        Map map = new Map(20, new ObjectCollection());
+        objects_arraylist = map.startCollection();
+        launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-    this.primaryStage = primaryStage;
+        this.primaryStage = primaryStage;
 
-    // Load the Map.fxml
-    FXMLLoader mapLoader = new FXMLLoader(getClass().getResource("/com/Map.fxml"));
-    Parent mapRoot = mapLoader.load();
+        // Load the Map.fxml
+        FXMLLoader mapLoader = new FXMLLoader(getClass().getResource("/com/Map.fxml"));
+        Parent mapRoot = mapLoader.load();
 
-    // Generate the map
-    Map start_map = new Map(20, objects_arraylist);
-    GridPane start_board = start_map.generateMap();
+        // Generate the map
+        Map start_map = new Map(20, objects_arraylist);
+        GridPane start_board = start_map.generateMap();
 
-    // Set the scatter chart
-    scatterChart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
+        // Set the first scatter chart
+        scatterChart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
 
-    // Set labels for the scatter chart
-    scatterChart.getXAxis().setLabel("Generation");
-    scatterChart.getYAxis().setLabel("Mean Fitness");
+        // Set labels for the first scatter chart
+        scatterChart.getXAxis().setLabel("Generation");
+        scatterChart.getYAxis().setLabel("Mean Fitness");
 
-    // Set the scatter chart to fill the entire width
-    scatterChart.setPrefSize(700, 700);
+        // Set the second scatter chart for average lifespan
+        scatterChartLifespan = new ScatterChart<>(new NumberAxis(), new NumberAxis());
 
-    // Create a HBox and add the board and scatter chart to it
-    this.hbox = new HBox();
-    hbox.getChildren().add(start_board);
-    hbox.getChildren().add(scatterChart);
+        // Set labels for the second scatter chart
+        scatterChartLifespan.getXAxis().setLabel("Generation");
+        scatterChartLifespan.getYAxis().setLabel("Average Lifespan");
 
-    // set the Hbox to fill the entire width
-    hbox.prefWidthProperty().bind(primaryStage.widthProperty());
-    hbox.prefHeightProperty().bind(primaryStage.heightProperty());
+        // Set the scatter charts to fill the entire width
+        scatterChart.setPrefSize(700, 350);
+        scatterChartLifespan.setPrefSize(700, 350);
 
+        // Create a VBox and add the scatter charts to it
+        VBox vbox = new VBox();
+        vbox.getChildren().add(scatterChart);
+        vbox.getChildren().add(scatterChartLifespan);
 
+        // Create a HBox and add the board and VBox to it
+        this.hbox = new HBox();
+        hbox.getChildren().add(start_board);
+        hbox.getChildren().add(vbox);
 
-    Scene mapScene = new Scene(hbox); // Use HBox here
-    primaryStage.setTitle("Social learning");
-    primaryStage.setScene(mapScene);
-    primaryStage.setResizable(true);
-    primaryStage.sizeToScene();
-    primaryStage.centerOnScreen();
-    // primaryStage.setFullScreen(true);
-    primaryStage.show();
+        // set the Hbox to fill the entire width
+        hbox.prefWidthProperty().bind(primaryStage.widthProperty());
+        hbox.prefHeightProperty().bind(primaryStage.heightProperty());
 
-    // Then initialize the Rules class and start the generation process
-    Rules rules = new Rules(this, objects_list, objects_arraylist);
+        Scene mapScene = new Scene(hbox); // Use HBox here
+        primaryStage.setTitle("Social learning");
+        primaryStage.setScene(mapScene);
+        primaryStage.setResizable(true);
+        primaryStage.sizeToScene();
+        primaryStage.centerOnScreen();
+        // primaryStage.setFullScreen(true);
+        primaryStage.show();
 
-    new SwingWorker<Void,Void>(){
-        @Override
-        protected Void doInBackground() throws Exception {
-            rules.Start();
-            return null;
-        }
-    }.execute();
+        // Then initialize the Rules class and start the generation process
+        Rules rules = new Rules(this, objects_list, objects_arraylist);
+        new SwingWorker<Void,Void>(){
+            @Override
+            protected Void doInBackground() throws Exception {
+                    rules.Start();
+                return null;
+            }
+        }.execute();
     }
 
     // method that updates the map at the end of each generation
@@ -111,34 +119,36 @@ public class Main extends  Application {
      * @param ob
      * @param points
      */
-    public synchronized void updateMap(ObjectCollection ob, List<Point2D.Float> points){
-    Platform.runLater(() -> {
-        GridPane updatedBoard = new Map(20, ob).generateMap();
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
-        for (Point2D.Float point : points) {
-            series.getData().add(new XYChart.Data<>(point.x, point.y));
-        }
-        // Clear the scatter chart data and add the new data
-        scatterChart.getData().clear();
-        scatterChart.getData().add(series);
+    public synchronized void updateMap(ObjectCollection ob, List<Point2D.Float> points, List<Point2D.Float> lifespanPoints){
+        Platform.runLater(() -> {
+            GridPane updatedBoard = new Map(20, ob).generateMap();
+            XYChart.Series<Number, Number> series = new XYChart.Series<>();
+            for (Point2D.Float point : points) {
+                series.getData().add(new XYChart.Data<>(point.x, point.y));
+            }
+            // Clear the scatter chart data and add the new data
+            scatterChart.getData().clear();
+            scatterChart.getData().add(series);
 
-        // Set labels for the scatter chart
-        scatterChart.getXAxis().setLabel("Generation");
-        scatterChart.getYAxis().setLabel("Mean Fitness");
-        // scatterChart.setPrefSize(1000, 1000);
-        hbox.getChildren().clear();
+            // Create a new series for the average lifespan data
+            XYChart.Series<Number, Number> lifespanSeries = new XYChart.Series<>();
+            for (Point2D.Float point : lifespanPoints) {
+                lifespanSeries.getData().add(new XYChart.Data<>(point.x, point.y));
+            }
+            // Clear the second scatter chart data and add the new data
+            scatterChartLifespan.getData().clear();
+            scatterChartLifespan.getData().add(lifespanSeries);
 
-
-        hbox.getChildren().add(updatedBoard);
-        hbox.getChildren().add(scatterChart);
-        hbox.prefWidthProperty().bind(primaryStage.widthProperty());
-        hbox.prefHeightProperty().bind(primaryStage.heightProperty());
-        hbox.autosize();
-        hbox.setAlignment(Pos.CENTER);
-        // set the Hbox to fill the entire width
-        scatterChart.setPrefSize(700, 700);
-    });
-}
+            hbox.getChildren().clear();
+            hbox.getChildren().add(updatedBoard);
+            hbox.getChildren().add(scatterChart);
+            hbox.getChildren().add(scatterChartLifespan);
+            hbox.prefWidthProperty().bind(primaryStage.widthProperty());
+            hbox.prefHeightProperty().bind(primaryStage.heightProperty());
+            hbox.autosize();
+            hbox.setAlignment(Pos.CENTER);
+        });
+    }
 
 
 }

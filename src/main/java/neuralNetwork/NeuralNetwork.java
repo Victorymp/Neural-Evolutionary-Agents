@@ -14,7 +14,7 @@ public class NeuralNetwork {
     private double[][] weightsHo;
     private double[] bias_h;
     private double[] bias_o;
-    private double mutationRate = 0.1;
+    private double mutationRate = 0.5;
 
     public NeuralNetwork(int input_nodes, int hidden_nodes, int output_nodes, double learning_rate) {
         this.input_nodes = input_nodes;
@@ -53,34 +53,21 @@ public class NeuralNetwork {
         // Calculate the hidden layer values
         double[] hidden = new double[this.hidden_nodes];
         double[] output = new double[this.output_nodes];
-        double A = learning_rate;
-
-
         // Calculate the hidden layer values
         for (int i = 0; i < this.hidden_nodes; i++) {
             double sum = 0;
             for (int j = 0; j < this.input_nodes; j++) {
                 // Sum of the weights times the inputs and make sure its between -1 and 1
-                if (this.weightsIh[i][j] > 1) {
-                    this.weightsIh[i][j] = 1;
-                } else if (this.weightsIh[i][j] < -1) {
-                    this.weightsIh[i][j] = -1;
-                }
                 sum += this.weightsIh[i][j] * input_array[j];
             }
             sum += bias_h[i];
             // Activation function at each hidden node
             hidden[i] = tanh(sum);
         }
-
+        // Calculate the output layer values
         for (int i = 0; i < this.output_nodes; i++) {
             double sum = 0;
             for (int j = 0; j < this.hidden_nodes; j++) {
-                if (this.weightsHo[i][j] > 1) {
-                    this.weightsHo[i][j] = 1;
-                } else if (this.weightsHo[i][j] < -1) {
-                    this.weightsHo[i][j] = -1;
-                }
                 sum += weightsHo[i][j] * hidden[j];
             }
             sum += this.bias_o[i];
@@ -89,9 +76,6 @@ public class NeuralNetwork {
         return output;
     }
 
-    public double sigmoid(double x) {
-        return 1 / (1 + Math.exp(-x));
-    }
 
     /**
      * Hyperbolic tangent function
@@ -185,36 +169,40 @@ public class NeuralNetwork {
     public void mutate() {
     // Select a random layer to mutate: 0 for weightsIh, 1 for weightsHo, 2 for bias_h, 3 for bias_o
     int layer = new Random().nextInt(4);
-
     switch (layer) {
         case 0: // Mutate weightsIh
             int i = new Random().nextInt(this.hidden_nodes);
             int j = new Random().nextInt(this.input_nodes);
-            if (Math.random() < mutationRate) {
+            if (Math.random() <= mutationRate) {
+                // Mutate the weight by a random value between -1 and 1
                 this.weightsIh[i][j] = Math.random() * 2 - 1;
             }
             break;
         case 1: // Mutate weightsHo
             i = new Random().nextInt(this.output_nodes);
             j = new Random().nextInt(this.hidden_nodes);
-            if (Math.random() < mutationRate) {
+            if (Math.random() <= mutationRate) {
+                // Mutate the weight by a random value between -1 and 1
                 this.weightsHo[i][j] = Math.random() * 2 - 1;
             }
             break;
         case 2: // Mutate bias_h
             i = new Random().nextInt(this.hidden_nodes);
-            if (Math.random() < mutationRate) {
+            if (Math.random() <= mutationRate) {
+                // Mutate the bias by a random value between -1 and 1
                 this.bias_h[i] = Math.random() * 2 - 1;
             }
             break;
         case 3: // Mutate bias_o
             i = new Random().nextInt(this.output_nodes);
-            if (Math.random() < mutationRate) {
+            if (Math.random() <= mutationRate) {
+                // Mutate the bias by a random value between -1 and 1
                 this.bias_o[i] = Math.random() * 2 - 1;
             }
             break;
     }
-}
+    }
+
 
     public void localFeedForward(double[] inputArray, ArrayList<Object> fov, Object currentPosition) {
         double[] hidden = new double[inputArray.length -1];

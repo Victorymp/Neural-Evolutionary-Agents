@@ -21,12 +21,11 @@ public class Animat {
 	private List<String[]> run_list;
 	private int lifeSpan;
 	private final DataFrame df;
-	private final Boolean teacher;
+	private final boolean teacher;
 	private ObjectCollection object_map;
-	private ObjectCollection activation_map;
 	private Boolean has_stone;
-	@SuppressWarnings("FieldCanBeLocal")
-	private Boolean reached_end;
+	//@SuppressWarnings("FieldCanBeLocal")
+	private boolean reached_end;
 
 	private Object current_object;
 
@@ -36,8 +35,6 @@ public class Animat {
 	private Stack<Object> path;
 	private NeuralNetwork nn;
 
-	private String[] inputs;
-
 	private double fitness;
 
 	private Boolean has_resource;
@@ -46,7 +43,6 @@ public class Animat {
 
 	public Animat(int x_pos, int y_pos, int id, boolean teachers, ObjectCollection object_map) {
 		this.object_map = object_map;
-		this.activation_map = object_map;
 		this.x_pos = x_pos;
 		this.y_pos = y_pos;
 		health = 100;
@@ -55,14 +51,14 @@ public class Animat {
 		lifeSpan = 0;
 		df = new DataFrame();
 		this.teacher = (Boolean) teachers;
-		reached_end = (Boolean) false;
+		reached_end = false;
 		path = new Stack<>();
 		current_object = object_map.inList(x_pos, y_pos);
 		current_neuron = object_map.getNeuron(x_pos, y_pos);
 		fitness = 0;
 		next_object = new Grass(getX(),getY());
 		// Initialize the neural network
-		nn = new NeuralNetwork(4, 3, 4, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
+		nn = new NeuralNetwork(5, 3, 5, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
 	}
 
     public Animat(int id, Action action, DataFrame df, Boolean teacher) {
@@ -127,6 +123,9 @@ public class Animat {
 	public void move() {
 		// if you're not dead
 		if (health > 0 && !reached_end) {
+			current_object = object_map.inList(x_pos, y_pos);
+			current_neuron = object_map.getNeuron(x_pos, y_pos);
+			// Fitness function
 			evaluateFitness();
 			lifeSpan += 1;
 			// Pick up the stone
@@ -138,6 +137,7 @@ public class Animat {
 			// Implementation of shunting network
 			shuntingNetwork();
 			// die if you're on the water and don't have a stone
+			if(current_object.getClass()== Trap.class) die();
 			if(y_pos == 2 && has_stone == null)die();
 		}
 	}
@@ -177,7 +177,7 @@ public class Animat {
 
 	public void die() {
 		health = 0;
-		fitness = 100;
+		//fitness = 100;
 	}
 
 	private Boolean hasStone() {
@@ -213,21 +213,24 @@ public class Animat {
 	 * With inputs being 1 or 0
 	 */
 	private double[] generateInputs() {
-		double[] inputs = new double[4];
+		double[] inputs = new double[5];
 		// Represents reachable states from current state
 		// Getting the neighbouring objects
 		double is_grass = 0;
-		double has_stone = 0;
+		double carrying = 0;
 		double is_resource = 0;
 		double is_water = 0;
+		double is_trap = 0;
 		if(current_object.getClass() == Water.class) is_water = 1;
 		if(current_object.getClass() == Grass.class) is_grass = 1;
-		if (hasStone() != null) has_stone = 1;
+		if (hasStone() != null || has_resource != null) carrying = 1;
 		if (current_object.getClass() == Resource.class) is_resource = 1;
+		if (current_object.getClass() == Trap.class) is_trap = 1;
 		inputs[0] = is_grass;
 		inputs[1] = is_resource;
-		inputs[2] = has_stone;
+		inputs[2] = carrying;
 		inputs[3] = is_water;
+		inputs[4] = is_trap;
         return inputs;
 
     }
@@ -262,17 +265,12 @@ public class Animat {
 
 	void shuntingNetwork() {
 		// Identify the current state
-		current_object = object_map.inList(getX(), getY());
-		// current neuron
-		current_neuron = object_map.getNeuron(getX(), getY());
 		if(current_neuron == null) System.out.println("Neuron is null");
-
 		// Set the receptive field of the neuron
 		if(current_neuron.getReceptiveField().isEmpty()) current_neuron = object_map.generateReceptiveField(current_neuron);
 		// System.out.println("Receptive field "+ current_neuron.getReceptiveField().size());
 		// Get the neighbouring objects of the current object
 		for(Neuron neuron : current_neuron.getReceptiveField()) {
-			if(neuron == null) System.out.println("Neuron is null");
             assert neuron != null;
             neuron.activate();
 		}
@@ -282,9 +280,12 @@ public class Animat {
 		// Get the neighbouring objects of the current object
 		// Set the receptive field of the neuron
 		// Activate the neuron
-		if (next_object != null) updateMoves(next_object.x() - getX(), next_object.y() - getY());
-		if (next_object == null) wonder();
-		// System.out.println("Next ");
+		if (next_object != null) {
+			updateMoves(next_object.x() - getX(), next_object.y() - getY());
+			return;
+		}
+		// if the next_object is null, then the animat should wonder
+		wonder();
 
 	}
 
@@ -292,16 +293,18 @@ public class Animat {
 	 * Decision network
 	 */
 	 void decisionNetwork() {
-		current_object = object_map.inList(getX(), getY());
 		// Set the inputs to the neural network
 
 		// Input iota values
 		// If the object is moveable, set the Iota value to 1 Environment type is boolean
 		// Get the output values
 		double[] outputValues = nn.feedForward(generateInputs());
-		setIota(outputValues[1], Grass.class);
-		setIota(outputValues[2], Resource.class);
-		setIota(outputValues[3], Water.class);
+		// The output values for all objects in the environment
+		 setIota(outputValues[1], Resource.class);
+		 setIota(outputValues[2], Stone.class);
+		 setIota(outputValues[3], Water.class);
+		 setIota(outputValues[4], Trap.class);
+
 		// System.out.println("Decision network complete");
 	}
 
@@ -323,7 +326,6 @@ public class Animat {
 	}
 
 	private void wonder(){
-		 System.out.println("Wondering");
 		 Random rand = new Random();
 		 int x = rand.nextInt(3) - 1;
 		 int y = rand.nextInt(3) - 1;
@@ -332,27 +334,27 @@ public class Animat {
 
 	boolean isInBounds(Object current) {
 		// Implement this method to check if the cell (x, y) is within the bounds of the environment.
-		if(current.x() < 0 || current.x() > 20 || current.y() < 0 || current.y() > 20){
-			return false;
-		} return true;
-	}
+        return current.x() >= 0 && current.x() <= 20 && current.y() >= 0 && current.y() <= 20;
+    }
 	void plan(List<Neuron> neighbourhood){
 		// System.out.println("Planning");
 		double highest_value = -Double.MAX_VALUE;
 		Object highest_object = null;
 		for(Neuron neuron: neighbourhood){
-			if(neuron.getObject() == null) neuron.setObject(object_map.inList(neuron.getX(), neuron.getY()));
-			if(neuron.getObject().getClass() == Resource.class){
+			// if(neuron.getObject() == null) neuron.setObject(object_map.inList(neuron.getX(), neuron.getY()));
+			if(neuron.getObject().getClass() == Resource.class) {
 				next_object = neuron.getObject();
-				// System.out.println("Plan completed Next object: "+next_object.x()+", "+next_object.y());
 				return;
 			}
 			// if the neuron value is greater than the highest value and the object is not in the path
-			if(neuron.getValue() >= highest_value && path.search(neuron.getObject()) == -1){
-				highest_value = neuron.getValue();
+			if(neuron.getCurrentValue() > highest_value && path.search(neuron.getObject()) == -1){
+				highest_value = neuron.getCurrentValue();
 				highest_object = neuron.getObject();
 			}
-			next_object = highest_object;
+		}
+		if(highest_object == null) {
+			next_object = null;
+			return;
 		}
 		next_object = highest_object;
 		// System.out.println("Plan completed Next object: "+next_object.x()+", "+next_object.y());
@@ -365,14 +367,22 @@ public class Animat {
 	public ObjectCollection map() {
 		return object_map;
 	}
+
+	/**
+	 * Evaluate the fitness function of the animat
+	 */
 	private void evaluateFitness(){
-		if(has_stone == null) addFitness();
-		if(!reached_end) addFitness();
+		//if(reached_end) addFitness();
+		// if the animat has reached the end
+		if(hasReachedEnd()) {
+			reachedEnd();
+		}
+		// if the animat should die
+		if(shouldDie()) {
+			die();
+		}
 
-	}
 
-	public void addFitness(){
-		this.fitness += 1;
 	}
 
 	public void fitness(){
@@ -384,7 +394,7 @@ public class Animat {
 	}
 
 	public void mutate(){
-		nn.setMutationRate(5);
+		nn.setMutationRate(0.5);
 		nn.mutate();
 	}
 
@@ -400,12 +410,8 @@ public class Animat {
 		nn.crossOver(a.getNeuralNetwork(), b.getNeuralNetwork());
 	}
 
-	public NeuralNetwork getNeuralNetwork(Animat a){
-		return a.getNeuralNetwork();
-	}
-
 	private boolean shouldDie() {
-		return has_stone == null && y_pos <= 2;
+		return reached_end && current_object.getClass() == Resource.class;
 	}
 
 	/**
@@ -413,15 +419,23 @@ public class Animat {
 	 * @return boolean
 	 *
 	 **/
-	private boolean hasReachedEnd() {
+	public boolean hasReachedEnd() {
+		if(has_resource != null) {
+			if (has_resource) {
+				if (current_object.getClass() == Resource.class) {
+					fitness = 1;
+					return true;
+				}
+			}
+		}
 		return has_resource != null;
 	}
 
 	private void reachedEnd() {
 		reached_end = true;
-		die();
 	}
 
 	public Stack<Object> getStack() { return path;
 	}
+
 }

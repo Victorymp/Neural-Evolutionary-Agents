@@ -2,6 +2,8 @@ package objects;
 
 import javafx.scene.canvas.GraphicsContext;
 
+import java.awt.*;
+
 public class Trap extends Object{
     /**
      * @param x_pos
@@ -25,6 +27,10 @@ public class Trap extends Object{
      */
     @Override
     public void move(int x, int y) {
+    }
 
+    @Override
+    public javafx.scene.paint.Paint getColor() {
+        return javafx.scene.paint.Color.BLACK;
     }
 }

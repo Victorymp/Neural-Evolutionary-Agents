@@ -3,59 +3,65 @@ package objects;
 import animat.Animat;
 
 import java.util.*;
+/**
+ * This class represents a collection of objects in a grid.
+ * It manages the objects' locations and their interactions with each other.
+ * It also manages the activation map of neurons associated with the objects.
+ *
+ * The grid is represented as a 2D array, and each cell in the grid can contain an object.
+ * The objects can be of different types (Grass, Water, Stone, etc.).
+ *
+ * The class also provides methods for adding and removing objects from the grid,
+ * checking if an object is in the grid, and getting the neighborhood of an object.
+ *
+ * The activation map is a list of neurons, each associated with an object in the grid.
+ * The class provides methods for activating neurons, setting their values, weights, and biases,
+ * and getting their receptive fields.
+ */
 
 public class ObjectCollection {
 
 	private static final int GRID_SIZE = 20;
 
 	private final Stack<Object> objectStack;
-	private final HashSet<Object> objectList;
-	private final ArrayList<Neuron> activationMap;
 	private final Object[][] objectLocation;
-	private final Neuron[][] neuronLocation;
+	private final Neuron[][] configurationSpace;
 
 	public ObjectCollection() {
 		objectStack = new Stack<>();
-		activationMap = new ArrayList<>();
-		objectList = new HashSet<>();
 		objectLocation = new Object[GRID_SIZE + 1][GRID_SIZE + 1];
-		neuronLocation = new Neuron[GRID_SIZE + 1][GRID_SIZE + 1];
-	}
-
-	public void createMap() {
-		for (int y = 0; y < GRID_SIZE; y++) {
-			for (int x = 0; x < GRID_SIZE; x++) {
-				Grass grass = new Grass(x, y);
-				addObject(grass);
-			}
-		}
-	}
-
-	public List<Neuron> getActivationMap() {
-		return activationMap;
-	}
-
-	public Stack<Object> getStack() {
-		return objectStack;
+		configurationSpace = new Neuron[GRID_SIZE + 1][GRID_SIZE + 1];
 	}
 
 	public void removeObject(Object ob) {
 		objectLocation[ob.getX()][ob.getY()] = null;
 	}
 
+	/**
+	 * Adds an object to the object collection
+	 * @param ob
+	 */
 	public void addObject(Object ob) {
-		if (isOutOfBounds(ob.getX(), ob.getY()) || objectLocation[ob.getX()][ob.getY()] != null){
+		if (isOutOfBounds(ob.getX(), ob.getY()) || objectLocation[ob.getX()][ob.getY()] != null || configurationSpace[ob.getX()][ob.getY()] != null){
 			return;
+		}
+		if (ob.getY() != 2 && ob.getClass() == Water.class) {
+            ob = new Grass(ob.getX(), ob.getY());
+		} if(isStone(ob.getX(), ob.getY())) {
+			ob = new Stone(ob.getX(), ob.getY());
+		} if (ob.getX() == 7 && ob.getY() == 10) {
+			ob = new Trap(ob.getX(), ob.getY());
+		} if (ob.getX() == 5 && ob.getY() == 0) {
+			ob = new Resource(ob.getX(), ob.getY());
 		}
 		objectStack.push(ob);
 		Neuron neuron = new Neuron(0, 0, 1, ob.getX(), ob.getY());
 		neuron.setObject(ob);
-		activationMap.add(neuron);
 		objectLocation[ob.getX()][ob.getY()] = ob;
-		neuronLocation[ob.getX()][ob.getY()] = neuron;
+		// The configuration space is a 2D array of neurons associated with the objects which represent the Cartesian grid
+		configurationSpace[ob.getX()][ob.getY()] = neuron;
 		if (ob.getClass() == Stone.class) {
-			activationMap.get(activationMap.size() - 1).setValue(1);
-			objectLocation[ob.getX()][ob.getY()].setIota(1);
+			configurationSpace[ob.getX()][ob.getY()].setCurrentValue(1);
 		}
 	}
 
@@ -64,8 +70,8 @@ public class ObjectCollection {
 	}
 
 	public Object inList(int x, int y) {
-		if(neuronLocation[x][y] != null) {
-			return neuronLocation[x][y].getObject();
+		if (objectLocation[x][y] != null) {
+			return objectLocation[x][y];
 		}
 		if (isOutOfBounds(x, y)) {
 			return null;
@@ -75,10 +81,25 @@ public class ObjectCollection {
 
 	private Object createAndAddNewObject(int x, int y) {
 		// If y is not 2, create a grass object, otherwise create a water object
+		Object obj = new Grass(x, y);
 		if(objectLocation[x][y] != null) {
 			return objectLocation[x][y];
 		}
-		Object obj = y != 2 ? new Grass(x, y) : new Water(x, y);
+		System.out.println("Creating new object");
+		System.out.println("X: " + x + " Y: " + y);
+
+		if (y == 2) {
+			obj = new Water(x, y);
+			System.out.println("Water");
+		} if(isStone(x, y)) {
+			obj = new Stone(x, y);
+			System.out.println("Stone");
+		} if (x == 10 && y == 19) {
+			obj = new Resource(x, y);
+			System.out.println("Resource");
+		} else {
+			System.out.println("Grass");
+		}
 		addObject(obj);
 		return obj;
 	}
@@ -99,19 +120,9 @@ public class ObjectCollection {
 		return neighborhood;
 	}
 
-	public List<Neuron> getRecField(int x, int y) {
-		List<Neuron> recField = new ArrayList<>();
-		for(Neuron neuron : activationMap) {
-			if(neuron.getX() >= x - 2 && neuron.getX() <= x + 2 && neuron.getY() >= y - 2 && neuron.getY() <= y + 2) {
-				recField.add(neuron);
-			}
-		}
-		return recField;
-	}
-
 	public void setIota(Class type, double value, int x, int y) {
-		for (int i = -2; i <= 2; i++) {
-			for (int j = -2; j <= 2; j++) {
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
 				// Check if the neighbor is within the grid
 				if (x + i >= 0 && x + i < GRID_SIZE && y + j >= 0 && y + j < GRID_SIZE) {
 					Object obj = objectLocation[x + i][y + j];
@@ -119,9 +130,8 @@ public class ObjectCollection {
 					if (obj != null && obj.getClass() == type) {
 						obj.setIota(value);
 						int index = (x + i) * GRID_SIZE + y + j;
-						activationMap.get(index).setIota(value);
-						activationMap.get(index).setObject(obj);
-						updateMap(obj, activationMap.get(index));
+						configurationSpace[x + i][y + j].setObject(obj);
+						updateMap(obj, configurationSpace[x + i][y + j]);
 					}
 				}
 			}
@@ -129,11 +139,7 @@ public class ObjectCollection {
 	}
 
 	public void setNeuronValue(int x, int y, double value) {
-		for(Neuron neuron : activationMap) {
-			if(neuron.getX() == x && neuron.getY() == y) {
-				neuron.setValue(value);
-			}
-		}
+		configurationSpace[x][y].setCurrentValue(value);
 	}
 
 	public ObjectCollection printAnimatJourney(Animat animat){
@@ -164,7 +170,6 @@ public class ObjectCollection {
 		} else {
 			return null;
 		}
-
 	}
 	/*
 	 * Generates the receptive field which is locations reachable by the animat
@@ -181,6 +186,7 @@ public class ObjectCollection {
 					// Add the neuron to the receptive field
 					neuron.addReceptiveField(getNeuron(x + i, y + j));
 				}
+				// Check if the receptive field has 8 neurons. Terminates the loop if it does
 				if (neuron.getReceptiveField().size() == 8) {
 					return neuron;
 				}
@@ -189,47 +195,65 @@ public class ObjectCollection {
 		return neuron;
 	}
 
+
 	public Neuron getNeuron(int x, int y) {
 
-		return neuronLocation[x][y];
+		return configurationSpace[x][y];
 	}
 
 	public void setNeuronWeights(int x, int y, double weights) {
-		for(Neuron neuron : activationMap) {
-			if(neuron.getX() == x && neuron.getY() == y) {
-				neuron.setWeights(weights);
-			}
-		}
+		configurationSpace[x][y].setWeights(weights);
 	}
 
 	public void setNeuronBias(int x, int y, double bias) {
-		for(Neuron neuron : activationMap) {
-			if(neuron.getX() == x && neuron.getY() == y) {
-				neuron.setBias(bias);
-			}
-		}
+		configurationSpace[x][y].setBias(bias);
 	}
 
 	public void activateNeuron(int x, int y) {
-		for(Neuron neuron : activationMap) {
-			if(neuron.getX() == x && neuron.getY() == y) {
-				neuron.generateReceptiveField();
-				neuron.activate();
-			}
-		}
+		configurationSpace[x][y].activate();
 	}
 
 	private void updateMap(Object object, Neuron neuron) {
-		activationMap.set(neuron.getX() * GRID_SIZE + neuron.getY(), neuron);
 		objectLocation[object.getX()][object.getY()] = object;
-		neuronLocation[object.getX()][object.getY()] = neuron;
+		configurationSpace[object.getX()][object.getY()] = neuron;
 	}
 
-	/*
-	 * Euclidean distance between two points (x1 , y1) and (x2, y2)
+	/**
+	 * Sets the stones for the map.map
+	 * @param x
+	 * @param y
+	 * @return
 	 */
-	private double euclideanDistance(int x, int y) {
-		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+	private static boolean isStone(int x, int y) {
+		Stone st = new Stone(x,y);
+		if (x == 1 && y == 4) {
+			return true;
+		}else if (x == 2 && y == 12) {
+			return true;
+		}else if (x == 5 && y == 9) {
+			return true;
+		}else if (x == 9 && y == 13) {
+			return true;
+		}else if (x == 12 && y == 10) {
+			return true;
+		}else if (x == 14 && y == 6) {
+			return true;
+		}else if (x == 18 && y == 12) {
+			return true;
+		}
+		return false;
+	}
+
+	void map1() {
+		// ... code to create the map
+	}
+
+	void map2() {
+		// ... code to create the map
+	}
+
+	void map3() {
+		// ... code to create the map
 	}
 
 

@@ -11,43 +11,32 @@ import objects.Object;
 public class Map {
     private int size;
     private ObjectCollection locations;
-
-    static Object[][] objects_list = new Object[20][20];
-    private static ObjectCollection objects_arraylist;
+    private Object[][] objectsList;
+    private ObjectCollection objectsArrayList;
 
     public Map(int size, ObjectCollection objects) {
         this.size = size;
         this.locations = objects;
+        this.objectsList = new Object[20][20];
+        this.objectsArrayList = new ObjectCollection();
     }
 
     public GridPane generateMap() {
         GridPane board = new GridPane();
-        // 100 rectangles grid
-        // 5x20 grid
-        int count = 0;
         double sides = 40; // length of each box
         for (int y = 0; y < 20; y++) {
-            count++;
             for (int x = 0; x < 20; x++) {
-                Rectangle r = new Rectangle(sides, sides, sides, sides);
+                Rectangle r = createRectangle(sides);
                 Object obj = locations.inList(x, y);
-                // creating a blue line for the water
-                if (y == 2) {
-                    r.setFill(obj.getColor());
-                    Water water = new Water(x, y);
-                } else if (isStone(x, y)) {
-                    r.setFill(obj.getColor());
-                    // System.out.println("x"+x+"y"+y);
-                } else if (x == 10 & y == 19) {
-                    r.setFill(obj.getColor());
-                } else {
-                    r.setFill(obj.getColor());
-                }
+                r.setFill(obj.getColor());
                 board.add(r, x, y);
             }
         }
         return board;
+    }
 
+    private Rectangle createRectangle(double sides) {
+        return new Rectangle(sides, sides, sides, sides);
     }
 
     public void createMap(ObjectCollection objects) {
@@ -60,80 +49,62 @@ public class Map {
         stage.show();
     }
 
-    public static ObjectCollection startCollection(){
-        objects_arraylist = new ObjectCollection();
+    public ObjectCollection startCollection(){
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
-                Grass grass = new Grass(x, y);
-                Water water = new Water(x, y);
-                Resource resource = new Resource(x, y);
-                if(objects_arraylist == null) {
-                    objects_arraylist = new ObjectCollection();
-                }
-                if(y == 2) {
-                    objects_arraylist.addObject(water);
-                } else if (isStone(x, y)) {
-                    Stone stone = new Stone(x, y);
-                    objects_arraylist.addObject(stone);
-                } else if (x == 10 && y == 19) {
-                    objects_arraylist.addObject(grass);
-                } else if (x == 5 && y == 0) {
-                    objects_arraylist.addObject(resource);
-                } else {
-                    objects_arraylist.addObject(grass);
-                }
+                addObjectToCollection(x, y);
             }
         }
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 20; j++) {
-                if (objects_arraylist.inList(i, j) == null) {
-                    Grass grass = new Grass(i, j);
-                    objects_arraylist.addObject(grass);
-                }
-            }
-        }
-        return objects_arraylist;
+        fillRemainingWithGrass();
+        return objectsArrayList;
     }
 
-    /**
-     * Sets the stones for the map.map
-     * @param x
-     * @param y
-     * @return
-     */
-    private static boolean isStone(int x, int y) {
-        Stone st = new Stone(x,y);
-        if (x == 1 && y == 4) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
-        }else if (x == 2 && y == 12) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
-        }else if (x == 5 && y == 9) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
-        }else if (x == 9 && y == 13) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
-        }else if (x == 12 && y == 10) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
-        }else if (x == 14 && y == 6) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
-        }else if (x == 18 && y == 12) {
-            objects_list[x][y]=st;
-            objects_arraylist.addObject(st);
-            return true;
+    private void addObjectToCollection(int x, int y) {
+        if(y == 2) {
+            addWater(x, y);
+        } else if (isStone(x, y)) {
+            addStone(x, y);
+        } else if (x == 5 && y == 0) {
+            addResource(x, y);
+        } else {
+            addGrass(x, y);
         }
+    }
 
-        return false;
+    private void addWater(int x, int y) {
+        Water water = new Water(x, y);
+        objectsArrayList.addObject(water);
+    }
+
+    private void addStone(int x, int y) {
+        Stone stone = new Stone(x, y);
+        objectsArrayList.addObject(stone);
+        objectsList[x][y] = stone;
+    }
+
+    private void addResource(int x, int y) {
+        Resource resource = new Resource(x, y);
+        objectsArrayList.addObject(resource);
+    }
+
+    private void addGrass(int x, int y) {
+        Grass grass = new Grass(x, y);
+        objectsArrayList.addObject(grass);
+    }
+
+    private void fillRemainingWithGrass() {
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 20; j++) {
+                if (objectsArrayList.inList(i, j) == null) {
+                    addGrass(i, j);
+                }
+            }
+        }
+    }
+
+    private boolean isStone(int x, int y) {
+        return (x == 1 && y == 4) || (x == 2 && y == 12) || (x == 5 && y == 9) || (x == 9 && y == 13) ||
+               (x == 12 && y == 10) || (x == 14 && y == 6) || (x == 18 && y == 12);
     }
 
 
