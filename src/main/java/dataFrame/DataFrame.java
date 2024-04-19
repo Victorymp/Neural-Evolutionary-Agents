@@ -8,11 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
-import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvValidationException;
 
 public class DataFrame {
 	private String runsData;
@@ -21,7 +18,7 @@ public class DataFrame {
 		runsData = "resources/Memory/Runs.csv";
 	}
 	
-	public void saveRun(List<String[]> runs) {
+	public void save(List<String[]> runs) {
 		//System.out.println(runs.toString());
 		try {
 			FileWriter fw = new FileWriter(runsData);
@@ -38,7 +35,7 @@ public class DataFrame {
 		}
 	}
 	
-	public void saveRun(String x, List<String[]> runs) {
+	public void save(String x, List<String[]> runs) {
 		runsData = "resources/Memory/"+x+".csv";
 		try {
 			FileWriter fw = new FileWriter(runsData);
@@ -51,12 +48,12 @@ public class DataFrame {
 			cs.writeAll(runs);
 			cs.writeNext(footer);
 			cs.close();
-			
+			System.out.println("Saved");
 		}catch(IOException e) {
 			
 		}
 	}
-	public void saveRun(String x, List<String[]> runs, String[] header) {
+	public void save(String x, List<String[]> runs, String[] header) {
 		runsData = "resources/Memory/"+x+".csv";
 		try {
 			FileWriter fw = new FileWriter(runsData);
@@ -187,5 +184,6 @@ public class DataFrame {
 			}
 		}
 
-	
+
+
 }

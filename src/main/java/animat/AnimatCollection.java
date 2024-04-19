@@ -9,54 +9,40 @@ import objects.ObjectCollection;
 
 
 public class AnimatCollection {
-	private ArrayList<Animat> ani;
-	private int generation;
-	private List<String[]> death_runs;
-	private List<String[]> ls;
+	private final ArrayList<Animat> ani;
+	private final int generation;
 	private DataFrame rdf;
-
-	private List<String[]> all_animats;
-	private ArrayList<ArrayList<String[]>> multiple_days;
 	private ObjectCollection objectCollection;
 	private ArrayList<String[]> reward_list;
+	private ArrayList<Integer> death_runs;
 	private int global_day;
-	private ArrayList<ArrayList<String[]>> multiple_days_2;
-	private double lowest_fitness = 10000;
+	private double lowest_fitness = 100;
 	private Animat best_1;
 	private Animat best_2;
 	private NeuralNetwork nn;
 	private ArrayList<Integer> reached_end;
-	private final Animat[] ani_array = new Animat[1000];
 
 	public AnimatCollection(int x, ObjectCollection objectCollection) {
 		this.generation = x;
 		rdf = new DataFrame();
-		ls = new ArrayList<>();
-		multiple_days = new ArrayList<>();
-		multiple_days_2 = new ArrayList<>();
-		death_runs = new ArrayList<String[]>();
 		reward_list = new ArrayList<String[]>();
 		reached_end = new ArrayList<>();
 		this.objectCollection = objectCollection;
-		all_animats = new ArrayList<>();
 		global_day = 0;
 		ani = new ArrayList<>();
+		death_runs = new ArrayList<>();
 	}
 
 	public AnimatCollection(int x, ObjectCollection objectCollection, NeuralNetwork nn) {
 		this.generation = x;
 		rdf = new DataFrame();
-		ls = new ArrayList<>();
-		multiple_days = new ArrayList<>();
-		multiple_days_2 = new ArrayList<>();
-		death_runs = new ArrayList<String[]>();
 		reward_list = new ArrayList<String[]>();
 		this.objectCollection = objectCollection;
-		all_animats = new ArrayList<>();
 		global_day = 0;
 		this.nn = nn;
 		reached_end = new ArrayList<>();
 		ani = new ArrayList<>();
+		death_runs = new ArrayList<>();
 	}
 	/**
 	 * Generation where all are teachers
@@ -70,29 +56,21 @@ public class AnimatCollection {
 			for(int i = 0; i<x; i++) {
 				// if i is less than the percentage of teachers
 				int randomX = 10;
-				int randomY = 20;
+				int randomY = 19;
+				Animat animat = new Animat(randomX,randomY,i,objectCollection);
+				if (generation > 0) animat.setNeuralNetwork(nn);
 				if( i < teachers_percent) {
 					// Starting location is 10,20
-					ani.add(new Animat(randomX,randomY,i,true,objectCollection));
+					animat.setTeacher(true);
+					ani.add(animat);
 				} else {
-				 	ani.add(new Animat(randomX,randomY,i,false,objectCollection));
+					animat.setTeacher(false);
+				 	ani.add(animat);
 				}
 			}
-			System.out.println("Created "+ani_array.length+" Animats");
+			System.out.println("Created "+ani.size()+" Animats");
 		} else {
 			System.out.println("Too big");
-		}
-		if(generation > 0) {
-			// if the generation is greater than 0
-			// then it will give the animats the neural network
-			for (Animat i: ani) {
-				i.setNeuralNetwork(nn);
-			}
-
-		}
-		// Gives the animats the object map.map
-		for (Animat i: ani) {
-			i.setObject_map(objectCollection);
 		}
 	}
 	
@@ -107,15 +85,19 @@ public class AnimatCollection {
 		y = Double.parseDouble(df.format(y));
 		if (x <=1000) {
 			for(int i = 0; i<=x; i++) {
+				Animat animat = new Animat(10,20,i,objectCollection);
+				if (generation > 0) animat.setNeuralNetwork(nn);
 				if( i < x*y) {
-					ani.add(new Animat(10,20,i,true,objectCollection));
+					animat.setTeacher(true);
+					ani.add(animat);
 				}
-				ani.add(new Animat(10,20,i,false,objectCollection));
+				animat.setTeacher(false);
+				ani.add(animat);
 			} System.out.println("Created "+ani.size()+" Animats");
 		} else {
 			System.out.println("Too big");
 		}
-		}
+	}
 
 
 	public int getGen() {
@@ -133,65 +115,27 @@ public class AnimatCollection {
 	}
 
 	public void runDays(int days) {
-        for (Animat	 i : ani) {
-            all_animats.add(i.getAnimat());
-        }
-        int count= 0;
 		for(int i=0; i< days; i++) {
 			day();
-			count++;
-		}
-		for(Animat i: ani) {
-			if(i.hasReachedEnd()) {
-				reached_end.add(i.getId());
-			}
 		}
 		System.out.print("Generation: "+generation+"\n");
-		System.out.print("Days: "+count+"\n");
-		System.out.print("Deaths at the end of the generation: "+ death_runs.size()+"\n");
-		System.out.print("Reached end at the end of the generation: "+ reached_end.size()+"\n");
-		System.out.print("Animats: "+ ani.size()+"\n");
+//		System.out.print("Days: "+count+"\n");
+//		System.out.print("Deaths at the end of the generation: "+ death_runs.size()+"\n");
+//		System.out.print("Reached end at the end of the generation: "+ reached_end.size()+"\n");
+//		System.out.print("Animats: "+ ani.size()+"\n");
 		}
 
 	private void day() {
-		ArrayList<String[]> day = new ArrayList<>();
-		ArrayList<String[]> day2 = new ArrayList<>();
-		ArrayList<String[]> ls = new ArrayList<>();
-		ls.add(new String[] {"Day: "+global_day});
 		/*
 		 * Every Ani is the animat list
 		 */
 		for(Animat i: ani) {
-			// System.out.print("Animat: "+i.getId()+" Moving"+"\n");
 			i.move();
-			// System.out.print("Animat: "+i.getId()+" Moved"+"\n");
-			day.add(i.getDay(Boolean.valueOf(false)));
-			day2.add(i.getDay(Boolean.valueOf(true)));
-			// System.out.print("Animat2: "+i.getId()+"\n");
-
 		}
 		// record dead
-		for(Animat i: ani) {
-			if(i.getDeath()) {
-				ls.add(i.getRuns());
-			}
-		}
-		death_runs.add(ls.get(0));
-		reward_list.add(ls.get(0));
-		multiple_days.add(ls);
-		multiple_days.add(day);
-		multiple_days_2.add(ls);
-		multiple_days_2.add(day2);
 		global_day++;
 	}
-	
-	private void saveDay() {
-		rdf.multiDaySave("Runners", multiple_days);
-		rdf.saveRun("Dead-Runs", death_runs);
-		rdf.saveRun("Reward-Runs", reward_list);
-		rdf.saveRun("MultiDay", rdf.multiDayConversion(multiple_days_2), new String[] {"Animat","Lifespan","Location x","Location y","Teacher","Reached end"});
-		rdf.saveRun("AllAnimats", all_animats, new String[] {"Animat","Lifespan","Teacher","Reached end"});
-	}
+
 	/**
 	 * Sets the object collection for the animats to use
 	 * @param ob
@@ -199,6 +143,7 @@ public class AnimatCollection {
 	public void setObjectCollection(ObjectCollection ob) {
 		objectCollection = ob;
 	}
+
 	/**
 	 * Prints the journey of a animat if its a teacher
 	 * @param x
@@ -228,19 +173,28 @@ public class AnimatCollection {
 		}
 		return ob;
 	}
+
 	/**
 	 * End of generation
 	 */
 	public void endOfGeneration() {
 		if(generation >0){
-			naturalSelection();
+			Animat[] animats = naturalSelection();
+			best_1 = animats[0];
+			best_2 = animats[1];
 			for(Animat i: ani) {
 				if(i.hasReachedEnd()) {
 					reached_end.add(i.getId());
 				}
+				if (i.getDeath()){
+					Animat animat = i;
+					death_runs.add(animat.getId());
+				}
 				// cross over with the best
-				i.crossOver(best_1, best_2);
-				i.mutate();
+				if(best_1 != null && best_2 != null) {
+					i.crossOver(best_1, best_2);
+					i.mutate();
+				}
 			}
 		} else {
 			System.out.println("Skipped natural selection");
@@ -252,68 +206,119 @@ public class AnimatCollection {
 	 * @return the best animat
 	 * Selects the best animat and the second best animat
 	 */
-	void naturalSelection() {
-		if (ani.isEmpty()){
+	Animat[] naturalSelection() {
+		if (ani.isEmpty()) {
 			System.out.println("No animats to select from.");
-			return;
+			return null;
 		}
 		double bestFitness = -1;
 		Stack<Animat> stack = new Stack<>();
-
 		for (Animat animat : ani) {
 			// If the fitness is better than the current best, update the best and not dead
-			if (animat.getFitness() > 0){
+			if (animat.getFitness() > 0) {
 				stack.push(animat);
 			}
-			if (animat.getFitness() > bestFitness ) {
+			if (animat.getFitness() > bestFitness && animat.getFitness() > 0) {
 				best_2 = best_1;
 				best_1 = animat;
 				bestFitness = animat.getFitness();
-				lowest_fitness = bestFitness;
+				lowest_fitness = animat.getFitness();
 			}
 
 		}
-		if(!stack.isEmpty()){
+		if (!stack.isEmpty()) {
 			best_2 = stack.pop();
 		}
-		if(!stack.isEmpty()){
+		if (!stack.isEmpty()) {
 			best_1 = stack.pop();
 		}
-		if(best_1 != null && best_2 != null){
-			return;
+		if (best_1 != null && best_2 != null) {
+			return new Animat[]{best_1, best_2};
 		}
-		Random rand = new Random();
-		if (best_1 == null) {
-			best_1 = ani.get(rand.nextInt(ani.size()));
-		}
+		Animat[] animats = closetAnimat();
+		best_1 = animats[0];
+		best_2 = animats[1];
+		return animats;
 
-		if (best_2 == null) {
-			best_2 = ani.get(rand.nextInt(ani.size()));
-			System.out.println("Best 2: "+best_2.getId()+" Fitness: "+best_2.getFitness());
-		}
-
-		// this.best_1 = best1;
-		// this.best_2 = best2;
 	}
 
+	/**
+	 * Euclidean distance
+	 * @param animat
+	 * @return the euclidean distance
+	 */
+	private double euclideanDistance(Animat animat) {
+		return Math.sqrt(Math.pow(animat.getX() - 5, 2) + Math.pow(animat.getY() - 1, 2));
+	}
+
+	/**
+	 * Get the best animat
+	 * @return the best animat
+	 */
 	public double getLowestFitness() {
 		return lowest_fitness;
+	}
+
+	/**
+	 * Closet animat
+	 * @return the closet animat to the end
+	 */
+	public Animat[] closetAnimat() {
+		Random random = new Random();
+		Animat[] animats = new Animat[2];
+		animats[0] = ani.get(random.nextInt(ani.size()));
+		animats[1] = ani.get(random.nextInt(ani.size()));
+		double distance = 0;
+		for(Animat animat: ani){
+			double distance_ = euclideanDistance(animat);
+			if (distance_ == 0){
+				distance = distance_;
+				animats[0] = animat;
+			} else if (distance_< distance){
+				distance = distance_;
+				animats[0] = animat;
+			}
+		}
+		distance = 0;
+		for(Animat animat: ani){
+			double distance_ = euclideanDistance(animat);
+			if (distance_ == 0){
+				distance = distance_;
+				animats[1] = animat;
+			} else if (distance_< distance){
+				distance = distance_;
+				animats[1] = animat;
+			}
+		}
+		return animats;
 	}
 
 	public ObjectCollection getObjectCollection() {
 		return objectCollection;
 	}
 
+	/**
+	 * Get the best animat
+	 * @return the best animat
+	 */
 	public NeuralNetwork getGenerationNeuralNetwork(){
         return best_1.getNeuralNetwork();
     }
 
+	/**
+	 * Get the best animat
+	 * @return the best animat
+	 */
 	public Animat getBest_1(){
         if (best_1 == null) naturalSelection();
 		// System.out.println("Best 1: "+best_1.getId()+" Fitness: "+best_1.getFitness());
         return best_1;
     }
 
+	/**
+	 * Mean fitness
+	 * @return the mean fitness of the animats
+	 */
 	public double getMean() {
 		ArrayList<Double> all_fitness = new ArrayList<>();
 		for (Animat i: ani) {
@@ -322,11 +327,123 @@ public class AnimatCollection {
 		return all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
 	}
 
+	/**
+	 * Mean lifespan
+	 * @return the mean lifespan of the animats
+	 */
 	public double getMeanLifespan() {
 		ArrayList<Double> all_fitness = new ArrayList<>();
 		for (Animat i: ani) {
 			all_fitness.add(Double.valueOf(i.getLifeSpan()));
 		}
 		return all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
+	}
+
+	/*
+	 * Best fitness
+	 * Fitness is if the agent has reached the end so this is 1
+	 * @return the best fitness is the agent that has the highest fitness
+	 */
+	public double bestFitness() {
+		double best = 0;
+		for(Animat i: ani) {
+			if(i.getFitness() > best) {
+				best = i.getFitness();
+			}
+		}
+		return best;
+	}
+
+	/*
+	 * Worst fitness
+	 * @return the worst fitness is the agent that has the lowest fitness however fitness is set to has reach end so this should always be 0
+	 */
+	public double worstFitness() {
+		double worst = 100;
+		for(Animat i: ani) {
+			if(i.getFitness() < worst) {
+				worst = i.getFitness();
+			}
+		}
+		return worst;
+	}
+
+	/*
+	 * Best lifespan
+	 * @return the best lifespan is the agent that has lived the shortest time with finding the resource
+	 */
+	public double bestLifespan() {
+		double best = 100;
+		for(Animat i: ani) {
+			// if the lifespan is less than the best lifespan and the agent has reached the end
+			if(i.getLifeSpan() < best && i.hasReachedEnd()) {
+				best = i.getLifeSpan();
+			}
+		}
+		return best;
+	}
+
+	/*
+	 * Worst lifespan
+	 * @return the worst lifespan is the agent that has lived the longest without finding the resource
+	 */
+	public double worstLifeSpan() {
+		double worst = 0;
+		for(Animat i: ani) {
+			// if the lifespan is greater than the worst lifespan and the agent has not reached the end
+			if(i.getLifeSpan() > worst && !i.hasReachedEnd()) {
+				worst = i.getLifeSpan();
+			}
+		}
+		return worst;
+	}
+
+	/**
+	 * Standard deviation of the fitness
+	 * @return the standard deviation of the fitness
+	 **/
+	public double stdDevFitness() {
+		ArrayList<Double> all_fitness = new ArrayList<>();
+		for (Animat i: ani) {
+			all_fitness.add(Double.valueOf(i.getFitness()));
+		}
+		double mean = all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
+		double sum = 0;
+		for (double i: all_fitness) {
+			sum += Math.pow(i - mean, 2);
+		}
+		return Math.sqrt(sum / all_fitness.size());
+	}
+
+	/**
+	 * Standard deviation of the lifespan
+	 * @return the standard deviation of the lifespan
+	 **/
+	public double stdDevLifespan() {
+		ArrayList<Double> all_fitness = new ArrayList<>();
+		for (Animat i: ani) {
+			all_fitness.add(Double.valueOf(i.getLifeSpan()));
+		}
+		double mean = all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
+		double sum = 0;
+		for (double i: all_fitness) {
+			sum += Math.pow(i - mean, 2);
+		}
+		return Math.sqrt(sum / all_fitness.size());
+	}
+
+	/**
+	 * Mutates the animats
+	 */
+	public String[] save(){
+		double bestFitness = bestFitness();
+		double worstFitness = worstFitness();
+		double meanMean = getMean();
+		double stdDev = stdDevFitness();
+		double bestLifespan = bestLifespan();
+		double worstLifespan = worstLifeSpan();
+		double meanLifespan = getMeanLifespan();
+		double stdDevLifespan = stdDevLifespan();
+		return new String[] {generation+"",bestFitness+"",worstFitness+"",meanMean+"",stdDev+"",bestLifespan+"",worstLifespan+"",meanLifespan+"",stdDevLifespan+""};
 	}
 }

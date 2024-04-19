@@ -21,7 +21,7 @@ public class Animat {
 	private List<String[]> run_list;
 	private int lifeSpan;
 	private final DataFrame df;
-	private final boolean teacher;
+	private boolean teacher;
 	private ObjectCollection object_map;
 	private Boolean has_stone;
 	//@SuppressWarnings("FieldCanBeLocal")
@@ -41,7 +41,7 @@ public class Animat {
 
 	private List<Neuron> receptiveField;
 
-	public Animat(int x_pos, int y_pos, int id, boolean teachers, ObjectCollection object_map) {
+	public Animat(int x_pos, int y_pos, int id,  ObjectCollection object_map) {
 		this.object_map = object_map;
 		this.x_pos = x_pos;
 		this.y_pos = y_pos;
@@ -50,7 +50,6 @@ public class Animat {
 		action = new Action();
 		lifeSpan = 0;
 		df = new DataFrame();
-		this.teacher = (Boolean) teachers;
 		reached_end = false;
 		path = new Stack<>();
 		current_object = object_map.inList(x_pos, y_pos);
@@ -65,8 +64,11 @@ public class Animat {
         this.id = id;
         this.action = action;
         this.df = df;
-        this.teacher = teacher;
     }
+
+	public void setTeacher(Boolean teacher) {
+		this.teacher = teacher;
+	}
 
     @Override
 	public String toString() {

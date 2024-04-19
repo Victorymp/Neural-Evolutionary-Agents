@@ -2,6 +2,8 @@ package objects;
 
 import animat.Animat;
 
+import map.Map;
+
 import java.util.*;
 /**
  * This class represents a collection of objects in a grid.
@@ -23,14 +25,32 @@ public class ObjectCollection {
 
 	private static final int GRID_SIZE = 20;
 
-	private final Stack<Object> objectStack;
 	private final Object[][] objectLocation;
 	private final Neuron[][] configurationSpace;
 
+	private int currentMap;
+	private Map map;
+
 	public ObjectCollection() {
-		objectStack = new Stack<>();
 		objectLocation = new Object[GRID_SIZE + 1][GRID_SIZE + 1];
 		configurationSpace = new Neuron[GRID_SIZE + 1][GRID_SIZE + 1];
+		currentMap = 3;
+		this.map = new Map(20,currentMap);
+	}
+
+	public void setMap(Map map) {
+		this.map = map;
+	}
+
+
+	public void setMap(ArrayList<Object> objects, int map_no) {
+		this.currentMap = map_no;
+		for (Object object : objects) {
+			objectLocation[object.getX()][object.getY()] = object;
+			Neuron neuron = new Neuron(0, 0, 1, object.getX(), object.getY());
+			neuron.setObject(object);
+			configurationSpace[object.getX()][object.getY()] = neuron;
+		}
 	}
 
 	public void removeObject(Object ob) {
@@ -45,16 +65,13 @@ public class ObjectCollection {
 		if (isOutOfBounds(ob.getX(), ob.getY()) || objectLocation[ob.getX()][ob.getY()] != null || configurationSpace[ob.getX()][ob.getY()] != null){
 			return;
 		}
-		if (ob.getY() != 2 && ob.getClass() == Water.class) {
-            ob = new Grass(ob.getX(), ob.getY());
-		} if(isStone(ob.getX(), ob.getY())) {
-			ob = new Stone(ob.getX(), ob.getY());
-		} if (ob.getX() == 7 && ob.getY() == 10) {
-			ob = new Trap(ob.getX(), ob.getY());
-		} if (ob.getX() == 5 && ob.getY() == 0) {
-			ob = new Resource(ob.getX(), ob.getY());
+		if (currentMap == 1) {
+			ob = map.map1(ob);
+		} else if (currentMap == 2) {
+			ob = map.map2(ob);
+		} else if (currentMap == 3) {
+			ob = map.map3(ob);
 		}
-		objectStack.push(ob);
 		Neuron neuron = new Neuron(0, 0, 1, ob.getX(), ob.getY());
 		neuron.setObject(ob);
 		objectLocation[ob.getX()][ob.getY()] = ob;
@@ -63,6 +80,7 @@ public class ObjectCollection {
 		if (ob.getClass() == Stone.class) {
 			configurationSpace[ob.getX()][ob.getY()].setCurrentValue(1);
 		}
+
 	}
 
 	private boolean isOutOfBounds(int x, int y) {
@@ -85,26 +103,9 @@ public class ObjectCollection {
 		if(objectLocation[x][y] != null) {
 			return objectLocation[x][y];
 		}
-		System.out.println("Creating new object");
-		System.out.println("X: " + x + " Y: " + y);
-
-		if (y == 2) {
-			obj = new Water(x, y);
-			System.out.println("Water");
-		} if(isStone(x, y)) {
-			obj = new Stone(x, y);
-			System.out.println("Stone");
-		} if (x == 10 && y == 19) {
-			obj = new Resource(x, y);
-			System.out.println("Resource");
-		} else {
-			System.out.println("Grass");
-		}
 		addObject(obj);
 		return obj;
 	}
-
-
 
 	public ArrayList<Object> getNeighborhood(int x, int y) {
 		ArrayList<Object> neighborhood = new ArrayList<>();
@@ -129,9 +130,8 @@ public class ObjectCollection {
 					// check if the object is of the same type
 					if (obj != null && obj.getClass() == type) {
 						obj.setIota(value);
-						int index = (x + i) * GRID_SIZE + y + j;
+						objectLocation[x + i][y + j] = obj;
 						configurationSpace[x + i][y + j].setObject(obj);
-						updateMap(obj, configurationSpace[x + i][y + j]);
 					}
 				}
 			}
@@ -197,7 +197,6 @@ public class ObjectCollection {
 
 
 	public Neuron getNeuron(int x, int y) {
-
 		return configurationSpace[x][y];
 	}
 
@@ -213,54 +212,4 @@ public class ObjectCollection {
 		configurationSpace[x][y].activate();
 	}
 
-	private void updateMap(Object object, Neuron neuron) {
-		objectLocation[object.getX()][object.getY()] = object;
-		configurationSpace[object.getX()][object.getY()] = neuron;
-	}
-
-	/**
-	 * Sets the stones for the map.map
-	 * @param x
-	 * @param y
-	 * @return
-	 */
-	private static boolean isStone(int x, int y) {
-		Stone st = new Stone(x,y);
-		if (x == 1 && y == 4) {
-			return true;
-		}else if (x == 2 && y == 12) {
-			return true;
-		}else if (x == 5 && y == 9) {
-			return true;
-		}else if (x == 9 && y == 13) {
-			return true;
-		}else if (x == 12 && y == 10) {
-			return true;
-		}else if (x == 14 && y == 6) {
-			return true;
-		}else if (x == 18 && y == 12) {
-			return true;
-		}
-		return false;
-	}
-
-	void map1() {
-		// ... code to create the map
-	}
-
-	void map2() {
-		// ... code to create the map
-	}
-
-	void map3() {
-		// ... code to create the map
-	}
-
-
-	/*
-	* returns
-	 */
-
-
-	// ... rest of the class
 }

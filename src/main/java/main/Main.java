@@ -31,10 +31,13 @@ import javafx.geometry.Pos;
 
 
 public class Main extends  Application {
-    Object[][] objects_list = new Object[20][20];
     private static ObjectCollection objects_arraylist;
     private Stage primaryStage;
     private HBox hbox;
+    private final int chartWidth = 300;
+    private final int chartHeight = 300;
+
+    private static Map map;
 
 
     @FXML
@@ -44,7 +47,7 @@ public class Main extends  Application {
     public ScatterChart scatterChartLifespan;
 
     public static void main(String[] args) {
-        Map map = new Map(20, new ObjectCollection());
+        map = new Map(20, new ObjectCollection());
         objects_arraylist = map.startCollection();
         launch(args);
     }
@@ -66,7 +69,7 @@ public class Main extends  Application {
 
         // Set labels for the first scatter chart
         scatterChart.getXAxis().setLabel("Generation");
-        scatterChart.getYAxis().setLabel("Mean Fitness");
+        scatterChart.getYAxis().setLabel("Average Fitness");
 
         // Set the second scatter chart for average lifespan
         scatterChartLifespan = new ScatterChart<>(new NumberAxis(), new NumberAxis());
@@ -76,8 +79,8 @@ public class Main extends  Application {
         scatterChartLifespan.getYAxis().setLabel("Average Lifespan");
 
         // Set the scatter charts to fill the entire width
-        scatterChart.setPrefSize(700, 350);
-        scatterChartLifespan.setPrefSize(700, 350);
+        scatterChart.setPrefSize(chartWidth, chartHeight);
+        scatterChartLifespan.setPrefSize(chartWidth, chartHeight);
 
         // Create a VBox and add the scatter charts to it
         VBox vbox = new VBox();
@@ -95,6 +98,8 @@ public class Main extends  Application {
 
         Scene mapScene = new Scene(hbox); // Use HBox here
         primaryStage.setTitle("Social learning");
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(800);
         primaryStage.setScene(mapScene);
         primaryStage.setResizable(true);
         primaryStage.sizeToScene();
@@ -103,7 +108,7 @@ public class Main extends  Application {
         primaryStage.show();
 
         // Then initialize the Rules class and start the generation process
-        Rules rules = new Rules(this, objects_list, objects_arraylist);
+        Rules rules = new Rules(this, objects_arraylist);
         new SwingWorker<Void,Void>(){
             @Override
             protected Void doInBackground() throws Exception {
@@ -139,16 +144,23 @@ public class Main extends  Application {
             scatterChartLifespan.getData().clear();
             scatterChartLifespan.getData().add(lifespanSeries);
 
+            // Set the scatter charts to fill the entire width
+            scatterChart.setPrefSize(chartWidth, chartHeight);
+            scatterChartLifespan.setPrefSize(chartWidth, chartHeight);
+
+            // set the size of the points in the scatter chart
+
+            VBox vbox = new VBox();
+            vbox.getChildren().add(scatterChart);
+            vbox.getChildren().add(scatterChartLifespan);
+
+
             hbox.getChildren().clear();
             hbox.getChildren().add(updatedBoard);
-            hbox.getChildren().add(scatterChart);
-            hbox.getChildren().add(scatterChartLifespan);
+            hbox.getChildren().add(vbox);
             hbox.prefWidthProperty().bind(primaryStage.widthProperty());
             hbox.prefHeightProperty().bind(primaryStage.heightProperty());
-            hbox.autosize();
-            hbox.setAlignment(Pos.CENTER);
+            //hbox.autosize();
         });
     }
-
-
 }
