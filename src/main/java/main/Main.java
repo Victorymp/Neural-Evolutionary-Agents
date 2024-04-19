@@ -128,7 +128,8 @@ public class Main extends  Application {
         Platform.runLater(() -> {
             GridPane updatedBoard = new Map(20, ob).generateMap();
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            for (Point2D.Float point : points) {
+            List<Point2D.Float> pointsCopy = new ArrayList<>(points);
+            for (Point2D.Float point : pointsCopy) {
                 series.getData().add(new XYChart.Data<>(point.x, point.y));
             }
             // Clear the scatter chart data and add the new data
@@ -137,7 +138,8 @@ public class Main extends  Application {
 
             // Create a new series for the average lifespan data
             XYChart.Series<Number, Number> lifespanSeries = new XYChart.Series<>();
-            for (Point2D.Float point : lifespanPoints) {
+            List<Point2D.Float> lifespanPointsCopy = new ArrayList<>(lifespanPoints);
+            for (Point2D.Float point : lifespanPointsCopy) {
                 lifespanSeries.getData().add(new XYChart.Data<>(point.x, point.y));
             }
             // Clear the second scatter chart data and add the new data

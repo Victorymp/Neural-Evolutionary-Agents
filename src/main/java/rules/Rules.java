@@ -70,7 +70,9 @@ public class Rules {
 			ani_list = new AnimatCollection(i + 1, objectCollection, ani_list.getGenerationNeuralNetwork());
 			ani_list.startGeneration(500);
 			current_generation++;
-			// if(i % (x/3) == 0) main.updateMap(best.map(), points, lifespanPoints);
+			if(best != null){
+				if(i % (x/3) == 0) main.updateMap(best.map(), points, lifespanPoints);
+			}
 		}
 		System.out.println("LifeSpan: "+best.getLifeSpan());
 		main.updateMap(best.map(), points, lifespanPoints);
