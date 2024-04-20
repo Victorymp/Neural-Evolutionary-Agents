@@ -34,7 +34,7 @@ public class Main extends  Application {
     private static ObjectCollection objects_arraylist;
     private Stage primaryStage;
     private HBox hbox;
-    private final int chartWidth = 300;
+    private final int chartWidth = 700;
     private final int chartHeight = 300;
 
     private static Map map;
@@ -47,7 +47,7 @@ public class Main extends  Application {
     public ScatterChart scatterChartLifespan;
 
     public static void main(String[] args) {
-        map = new Map(20, new ObjectCollection());
+        map = new Map(20, new ObjectCollection(),3);
         objects_arraylist = map.startCollection();
         launch(args);
     }
@@ -61,8 +61,7 @@ public class Main extends  Application {
         Parent mapRoot = mapLoader.load();
 
         // Generate the map
-        Map start_map = new Map(20, objects_arraylist);
-        GridPane start_board = start_map.generateMap();
+        GridPane start_board = map.generateMap();
 
         // Set the first scatter chart
         scatterChart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
@@ -124,9 +123,9 @@ public class Main extends  Application {
      * @param ob
      * @param points
      */
-    public synchronized void updateMap(ObjectCollection ob, List<Point2D.Float> points, List<Point2D.Float> lifespanPoints){
+    public synchronized void updateMap(ObjectCollection ob, List<Point2D.Float> points, List<Point2D.Float> lifespanPoints, int currentMap){
         Platform.runLater(() -> {
-            GridPane updatedBoard = new Map(20, ob).generateMap();
+            GridPane updatedBoard = new Map(20, ob, currentMap).generateMap();
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
             List<Point2D.Float> pointsCopy = new ArrayList<>(points);
             for (Point2D.Float point : pointsCopy) {

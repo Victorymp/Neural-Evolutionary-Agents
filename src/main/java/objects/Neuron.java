@@ -7,26 +7,21 @@ import java.util.List;
  * Is no modifier because it is package-private for the animat package
  */
 public class Neuron {
-    private int X;
-    private int Y;
+    private final int X;
+    private final int Y;
     private double currentValue;
     private double bias;
     private double weights;
-    private double delta;
     private List<Neuron> receptiveField;
     private Object object;
     private double iota;
 
     private double activity;
-    private double decay;
-    private double input;
-    private double connectionWeight;
-    private double E;
+    private final double decay;
 
-    Neuron(double currentValue, double bias, double weights, int X, int Y) {
+    Neuron(double currentValue, double bias, int X, int Y) {
         this.currentValue = currentValue;
         this.bias = -0.1;
-        this.weights = weights;
         this.X = X;
         this.Y = Y;
         this.receptiveField = new ArrayList<>();
@@ -47,14 +42,6 @@ public class Neuron {
 
     void setBias(double bias) {
         this.bias = bias;
-    }
-
-    double getWeights() {
-        return weights;
-    }
-
-    void setWeights(double weights) {
-        this.weights = weights;
     }
 
     /**
@@ -80,7 +67,7 @@ public class Neuron {
                     // Check if the neighbor is within the grid
                     if (i >= 0 && i < 20 && j >= 0 && j < 20) {
                         // Add the neuron to the receptive field
-                        receptiveField.add(new Neuron(0, 0, euclideanDistance(i,j), i, j));
+                        receptiveField.add(new Neuron(0, 0, i, j));
                     }
                 }
             }
@@ -119,18 +106,6 @@ public class Neuron {
     }
 
 
-    public void updateActivity(){
-        double sum = 0;
-        for (Neuron neighbor : receptiveField) {
-            sum += neighbor.getCurrentValue() * euclideanDistance(neighbor);
-        }
-        double activity = -decay * sum + input;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
-    }
-
     public void setObject(Object object) { this.object = object;}
 
     public Object getObject() {
@@ -168,13 +143,6 @@ public class Neuron {
         } else {
             this.iota = iota;
         }
-//        if (object.getClass() == Stone.class) {
-//            System.out.println("Stone: " + object.getClass());
-//            System.out.println("Iota: " + this.iota);
-//        }
     }
 
-    private void tanh() {
-        currentValue = Math.tanh(currentValue);
-    }
 }

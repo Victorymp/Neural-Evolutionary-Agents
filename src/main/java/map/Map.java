@@ -15,12 +15,13 @@ public class Map {
     private ObjectCollection objectsArrayList;
     private int currentMap;
 
-    public Map(int size, ObjectCollection objects) {
+    public Map(int size, ObjectCollection objects, int currentMap) {
         this.size = size;
         this.locations = objects;
+        locations.setMap(currentMap);
         this.objectsList = new Object[20][20];
         this.objectsArrayList = new ObjectCollection();
-        currentMap =3;
+        this.currentMap = currentMap;
     }
 
     public Map(int size, int currentMap) {
@@ -28,9 +29,6 @@ public class Map {
         this.currentMap = currentMap;
     }
 
-    public void setCurrentMap(int currentMap) {
-        this.currentMap = currentMap;
-    }
 
     public GridPane generateMap() {
         GridPane board = new GridPane();
@@ -61,8 +59,8 @@ public class Map {
     }
 
     public ObjectCollection startCollection(){
-        for (int y = 0; y < 20; y++) {
-            for (int x = 0; x < 20; x++) {
+        for (int y = 0; y <= 20; y++) {
+            for (int x = 0; x <= 20; x++) {
                 addObjectToCollection(x, y);
             }
         }
@@ -176,14 +174,16 @@ public class Map {
     }
 
     public Object map2(Object ob) {
-        if ((ob.getY() != 2 && ob.getClass() == Water.class) || (ob.getY() !=3 && ob.getClass() == Water.class) ) {
-            ob = new Grass(ob.getX(), ob.getY());
-        } if(isStoneMap2(ob.getX(), ob.getY())) {
+        if ((ob.getY() == 2 && ob.getClass() == Water.class) || (ob.getY() ==3 && ob.getClass() == Water.class) ) {
+            ob = new Water(ob.getX(), ob.getY());
+        } else if(isStoneMap2(ob.getX(), ob.getY())) {
             ob = new Stone(ob.getX(), ob.getY());
-        } if (ob.getX() == 7 && ob.getY() == 10) {
+        } else if (ob.getX() == 7 && ob.getY() == 10) {
             ob = new Trap(ob.getX(), ob.getY());
-        } if (ob.getX() == 5 && ob.getY() == 0) {
+        } else if (ob.getX() == 12 && ob.getY() == 1) {
             ob = new Resource(ob.getX(), ob.getY());
+        }else {
+            ob = new Grass(ob.getX(), ob.getY());
         }
         return ob;
     }

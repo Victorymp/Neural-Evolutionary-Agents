@@ -5,8 +5,12 @@ import java.util.*;
 import java.lang.Math;
 
 import dataFrame.DataFrame;
-import objects.*;
-
+import objects.Grass;
+import objects.Resource;
+import objects.Stone;
+import objects.Trap;
+import objects.Water;
+import objects.ObjectCollection;
 import neuralNetwork.NeuralNetwork;
 import objects.Object;
 
@@ -23,7 +27,7 @@ public class Animat {
 	private final DataFrame df;
 	private boolean teacher;
 	private ObjectCollection object_map;
-	private Boolean has_stone;
+	private Boolean has_stone = false;
 	//@SuppressWarnings("FieldCanBeLocal")
 	private boolean reached_end;
 
@@ -38,6 +42,12 @@ public class Animat {
 	private double fitness;
 
 	private Boolean has_resource;
+
+	private final double[] inputs = new double[5];
+
+	private double[] outputValues = new double[5];
+
+	private final Map<String, Double> distanceCache = new HashMap<>();
 
 	private List<Neuron> receptiveField;
 
@@ -179,15 +189,12 @@ public class Animat {
 
 	public void die() {
 		health = 0;
-		//fitness = 100;
+		fitness = 0;
 	}
 
 	private Boolean hasStone() {
 		return has_stone;
 	}
-
-	//loacte stone
-
 	/**
 	 * Get the class of the object at the current location
 	 * @param aClass
@@ -206,7 +213,13 @@ public class Animat {
 
 
 	private Double distance(int x_first, int y_first, int x_second, int y_second) {
-		return Math.sqrt(Math.pow((x_second - x_first), 2) + Math.pow((y_second - y_first), 2));
+		String key = x_first + "," + y_first + "," + x_second + "," + y_second;
+		if (distanceCache.containsKey(key)) {
+			return distanceCache.get(key);
+		}
+		double distance = Math.sqrt(Math.pow(x_first - x_second, 2) + Math.pow(y_first - y_second, 2));
+		distanceCache.put(key, distance);
+		return distance;
 	}
 
 	/**
@@ -215,7 +228,6 @@ public class Animat {
 	 * With inputs being 1 or 0
 	 */
 	private double[] generateInputs() {
-		double[] inputs = new double[5];
 		// Represents reachable states from current state
 		// Getting the neighbouring objects
 		double is_grass = 0;
@@ -300,7 +312,7 @@ public class Animat {
 		// Input iota values
 		// If the object is moveable, set the Iota value to 1 Environment type is boolean
 		// Get the output values
-		double[] outputValues = nn.feedForward(generateInputs());
+		outputValues = nn.feedForward(generateInputs());
 		// The output values for all objects in the environment
 		 setIota(outputValues[1], Resource.class);
 		 setIota(outputValues[2], Stone.class);
@@ -383,8 +395,6 @@ public class Animat {
 		if(shouldDie()) {
 			die();
 		}
-
-
 	}
 
 	public void fitness(){
@@ -413,7 +423,7 @@ public class Animat {
 	}
 
 	private boolean shouldDie() {
-		return reached_end && current_object.getClass() == Resource.class;
+		return !has_stone && current_object.getClass() == Water.class || current_object.getClass() == Trap.class;
 	}
 
 	/**

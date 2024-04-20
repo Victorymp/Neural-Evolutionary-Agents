@@ -34,7 +34,7 @@ public class ObjectCollection {
 	public ObjectCollection() {
 		objectLocation = new Object[GRID_SIZE + 1][GRID_SIZE + 1];
 		configurationSpace = new Neuron[GRID_SIZE + 1][GRID_SIZE + 1];
-		currentMap = 3;
+		currentMap = 2;
 		this.map = new Map(20,currentMap);
 	}
 
@@ -42,12 +42,16 @@ public class ObjectCollection {
 		this.map = map;
 	}
 
+	public void setMap(int map_no) {
+		this.currentMap = map_no;
+		this.map = new Map(20, map_no);
+	}
 
 	public void setMap(ArrayList<Object> objects, int map_no) {
 		this.currentMap = map_no;
 		for (Object object : objects) {
 			objectLocation[object.getX()][object.getY()] = object;
-			Neuron neuron = new Neuron(0, 0, 1, object.getX(), object.getY());
+			Neuron neuron = new Neuron(0, 0,  object.getX(), object.getY());
 			neuron.setObject(object);
 			configurationSpace[object.getX()][object.getY()] = neuron;
 		}
@@ -72,7 +76,7 @@ public class ObjectCollection {
 		} else if (currentMap == 3) {
 			ob = map.map3(ob);
 		}
-		Neuron neuron = new Neuron(0, 0, 1, ob.getX(), ob.getY());
+		Neuron neuron = new Neuron(0, 0,  ob.getX(), ob.getY());
 		neuron.setObject(ob);
 		objectLocation[ob.getX()][ob.getY()] = ob;
 		// The configuration space is a 2D array of neurons associated with the objects which represent the Cartesian grid
@@ -100,11 +104,8 @@ public class ObjectCollection {
 	private Object createAndAddNewObject(int x, int y) {
 		// If y is not 2, create a grass object, otherwise create a water object
 		Object obj = new Grass(x, y);
-		if(objectLocation[x][y] != null) {
-			return objectLocation[x][y];
-		}
 		addObject(obj);
-		return obj;
+		return objectLocation[x][y];
 	}
 
 	public ArrayList<Object> getNeighborhood(int x, int y) {
@@ -124,14 +125,17 @@ public class ObjectCollection {
 	public void setIota(Class type, double value, int x, int y) {
 		for (int i = -1; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
+				int x_pos = x + i;
+				int y_pos = y + j;
 				// Check if the neighbor is within the grid
-				if (x + i >= 0 && x + i < GRID_SIZE && y + j >= 0 && y + j < GRID_SIZE) {
-					Object obj = objectLocation[x + i][y + j];
+				if (x_pos >= 0 && x_pos < GRID_SIZE && y_pos >= 0 && y_pos < GRID_SIZE) {
+					Object obj = objectLocation[x_pos][y_pos];
 					// check if the object is of the same type
 					if (obj != null && obj.getClass() == type) {
 						obj.setIota(value);
-						objectLocation[x + i][y + j] = obj;
-						configurationSpace[x + i][y + j].setObject(obj);
+						objectLocation[x_pos][y_pos] = obj;
+						configurationSpace[x_pos][y_pos].setObject(obj);
+						configurationSpace[x_pos][y_pos].setIota(value);
 					}
 				}
 			}
@@ -200,9 +204,6 @@ public class ObjectCollection {
 		return configurationSpace[x][y];
 	}
 
-	public void setNeuronWeights(int x, int y, double weights) {
-		configurationSpace[x][y].setWeights(weights);
-	}
 
 	public void setNeuronBias(int x, int y, double bias) {
 		configurationSpace[x][y].setBias(bias);

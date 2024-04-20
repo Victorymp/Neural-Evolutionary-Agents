@@ -20,7 +20,8 @@ public class AnimatCollection {
 	private Animat best_1;
 	private Animat best_2;
 	private NeuralNetwork nn;
-	private ArrayList<Integer> reached_end;
+	private final ArrayList<Integer> reached_end;
+	private Map<String, Double> distanceCache = new HashMap<>();
 
 	public AnimatCollection(int x, ObjectCollection objectCollection) {
 		this.generation = x;
@@ -166,14 +167,6 @@ public class AnimatCollection {
 		}
 	}
 
-	public ArrayList<ObjectCollection> fitness() {
-		ArrayList<ObjectCollection> ob = new ArrayList<>();
-		for(Animat i: ani) {
-			ob.add(i.map());
-		}
-		return ob;
-	}
-
 	/**
 	 * End of generation
 	 */
@@ -187,8 +180,7 @@ public class AnimatCollection {
 					reached_end.add(i.getId());
 				}
 				if (i.getDeath()){
-					Animat animat = i;
-					death_runs.add(animat.getId());
+                    death_runs.add(i.getId());
 				}
 				// cross over with the best
 				if(best_1 != null && best_2 != null) {
@@ -224,7 +216,6 @@ public class AnimatCollection {
 				bestFitness = animat.getFitness();
 				lowest_fitness = animat.getFitness();
 			}
-
 		}
 		if (!stack.isEmpty()) {
 			best_2 = stack.pop();
@@ -248,7 +239,13 @@ public class AnimatCollection {
 	 * @return the euclidean distance
 	 */
 	private double euclideanDistance(Animat animat) {
-		return Math.sqrt(Math.pow(animat.getX() - 5, 2) + Math.pow(animat.getY() - 1, 2));
+		String key = animat.getX() + "," + animat.getY();
+		if (distanceCache.containsKey(key)) {
+			return distanceCache.get(key);
+		}
+		double distance = Math.sqrt(Math.pow(10 - animat.getX(), 2) + Math.pow(20 - animat.getY(), 2));
+		distanceCache.put(key, distance);
+		return distance;
 	}
 
 	/**
@@ -264,33 +261,24 @@ public class AnimatCollection {
 	 * @return the closet animat to the end
 	 */
 	public Animat[] closetAnimat() {
-		Random random = new Random();
-		Animat[] animats = new Animat[2];
-		animats[0] = ani.get(random.nextInt(ani.size()));
-		animats[1] = ani.get(random.nextInt(ani.size()));
-		double distance = 0;
-		for(Animat animat: ani){
-			double distance_ = euclideanDistance(animat);
-			if (distance_ == 0){
-				distance = distance_;
-				animats[0] = animat;
-			} else if (distance_< distance){
-				distance = distance_;
-				animats[0] = animat;
+		Animat closestAnimat1 = null;
+		Animat closestAnimat2 = null;
+		double minDistance1 = Double.MAX_VALUE;
+		double minDistance2 = Double.MAX_VALUE;
+		for (Animat animat : ani) {
+			double distance = euclideanDistance(animat);
+			if (distance < minDistance1) {
+				minDistance2 = minDistance1;
+				closestAnimat2 = closestAnimat1;
+				minDistance1 = distance;
+				closestAnimat1 = animat;
+			} else if (distance < minDistance2) {
+				minDistance2 = distance;
+				closestAnimat2 = animat;
 			}
 		}
-		distance = 0;
-		for(Animat animat: ani){
-			double distance_ = euclideanDistance(animat);
-			if (distance_ == 0){
-				distance = distance_;
-				animats[1] = animat;
-			} else if (distance_< distance){
-				distance = distance_;
-				animats[1] = animat;
-			}
-		}
-		return animats;
+
+		return new Animat[]{closestAnimat1, closestAnimat2};
 	}
 
 	public ObjectCollection getObjectCollection() {
@@ -320,24 +308,20 @@ public class AnimatCollection {
 	 * @return the mean fitness of the animats
 	 */
 	public double getMean() {
-		ArrayList<Double> all_fitness = new ArrayList<>();
-		for (Animat i: ani) {
-			all_fitness.add(Double.valueOf(i.getFitness()));
-		}
-		return all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
-	}
+		return ani.stream()
+				.mapToDouble(Animat::getFitness)
+				.average()
+				.orElse(0.0);}
 
 	/**
 	 * Mean lifespan
 	 * @return the mean lifespan of the animats
 	 */
 	public double getMeanLifespan() {
-		ArrayList<Double> all_fitness = new ArrayList<>();
-		for (Animat i: ani) {
-			all_fitness.add(Double.valueOf(i.getLifeSpan()));
-		}
-		return all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
-	}
+		return ani.stream()
+				.mapToDouble(Animat::getLifeSpan)
+				.average()
+				.orElse(0.0);}
 
 	/*
 	 * Best fitness
@@ -345,27 +329,20 @@ public class AnimatCollection {
 	 * @return the best fitness is the agent that has the highest fitness
 	 */
 	public double bestFitness() {
-		double best = 0;
-		for(Animat i: ani) {
-			if(i.getFitness() > best) {
-				best = i.getFitness();
-			}
-		}
-		return best;
-	}
+		return ani.stream()
+				.mapToDouble(Animat::getFitness)
+				.max()
+				.orElse(0.0);}
 
 	/*
 	 * Worst fitness
 	 * @return the worst fitness is the agent that has the lowest fitness however fitness is set to has reach end so this should always be 0
 	 */
 	public double worstFitness() {
-		double worst = 100;
-		for(Animat i: ani) {
-			if(i.getFitness() < worst) {
-				worst = i.getFitness();
-			}
-		}
-		return worst;
+		return ani.stream()
+				.mapToDouble(Animat::getFitness)
+				.min()
+				.orElse(0.0);
 	}
 
 	/*
@@ -373,14 +350,10 @@ public class AnimatCollection {
 	 * @return the best lifespan is the agent that has lived the shortest time with finding the resource
 	 */
 	public double bestLifespan() {
-		double best = 100;
-		for(Animat i: ani) {
-			// if the lifespan is less than the best lifespan and the agent has reached the end
-			if(i.getLifeSpan() < best && i.hasReachedEnd()) {
-				best = i.getLifeSpan();
-			}
-		}
-		return best;
+		return ani.stream()
+				.mapToDouble(Animat::getLifeSpan)
+				.max()
+				.orElse(0.0);
 	}
 
 	/*
@@ -388,14 +361,10 @@ public class AnimatCollection {
 	 * @return the worst lifespan is the agent that has lived the longest without finding the resource
 	 */
 	public double worstLifeSpan() {
-		double worst = 0;
-		for(Animat i: ani) {
-			// if the lifespan is greater than the worst lifespan and the agent has not reached the end
-			if(i.getLifeSpan() > worst && !i.hasReachedEnd()) {
-				worst = i.getLifeSpan();
-			}
-		}
-		return worst;
+		return ani.stream()
+				.mapToDouble(Animat::getLifeSpan)
+				.min()
+				.orElse(0.0);
 	}
 
 	/**
@@ -403,17 +372,9 @@ public class AnimatCollection {
 	 * @return the standard deviation of the fitness
 	 **/
 	public double stdDevFitness() {
-		ArrayList<Double> all_fitness = new ArrayList<>();
-		for (Animat i: ani) {
-			all_fitness.add(Double.valueOf(i.getFitness()));
-		}
-		double mean = all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
-		double sum = 0;
-		for (double i: all_fitness) {
-			sum += Math.pow(i - mean, 2);
-		}
-		return Math.sqrt(sum / all_fitness.size());
-	}
+		double mean = ani.stream().mapToDouble(Animat::getFitness).average().orElse(0.0);
+		double sum = ani.stream().mapToDouble(a -> Math.pow(a.getFitness() - mean, 2)).sum();
+		return Math.sqrt(sum / ani.size());}
 
 	/**
 	 * Standard deviation of the lifespan
@@ -422,7 +383,7 @@ public class AnimatCollection {
 	public double stdDevLifespan() {
 		ArrayList<Double> all_fitness = new ArrayList<>();
 		for (Animat i: ani) {
-			all_fitness.add(Double.valueOf(i.getLifeSpan()));
+			all_fitness.add((double) i.getLifeSpan());
 		}
 		double mean = all_fitness.stream().mapToDouble(val -> val).average().orElse(0.0);
 		double sum = 0;

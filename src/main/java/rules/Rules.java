@@ -15,13 +15,13 @@ import objects.ObjectCollection;
 
 public class Rules {
 	private AnimatCollection ani_list;
-	private ArrayList<AnimatCollection> generation;
+	private final ArrayList<AnimatCollection> generation;
 
     private ObjectCollection objectCollection;
 
 	private int current_generation = 0;
 
-	private Main main;
+	private final Main main;
 
 	private double lowest_fitness = 10000;
 
@@ -29,36 +29,53 @@ public class Rules {
 
 	List<Point2D.Float> lifespanPoints = new ArrayList<Point2D.Float>();
 
-	private DataFrame dataFrame;
-
+	private final DataFrame dataFrame;
 
 	private Animat best;
 
-	private Map map;
+	private int current_map = 2;
+
+	private final int generation_size = 250;
+
+	private final int generations = 400;
+
 
 	public Rules(Main main, ObjectCollection ob_list) {
 		this.main = main;
 		this.ani_list = new AnimatCollection(0, ob_list);
-		objectCollection = ob_list;
+		this.objectCollection = ob_list;
 		generation = new ArrayList<>();
 		best = new Animat(0, 0, 0, ob_list);
 		dataFrame = new DataFrame();
-		objectCollection.setMap(new Map(20, objectCollection));
+		current_map = 3;
 	}
 	/**
 	 * Starting point for the simulation
 	 */
 	public void Start() {
-		ani_list.startGeneration(500);
-		runGenerations(3000);
+		ani_list.startGeneration(generation_size);
+		runGenerations(generations);
+		// next map where the animats will be made from the best animat of the previous generation
+		current_map = 1;
+		this.objectCollection = new Map(20, objectCollection, current_map).startCollection();
+		ani_list = new AnimatCollection(current_generation, this.objectCollection, best.getNeuralNetwork());
+		ani_list.startGeneration(generation_size);
+		runGenerations(generations);
+		// next map where the animats will be made from the best animat of the previous generation
+		current_map = 2;
+		this.objectCollection = new Map(20, objectCollection, current_map).startCollection();
+		ani_list = new AnimatCollection(current_generation, this.objectCollection, best.getNeuralNetwork());
+		ani_list.startGeneration(generation_size);
+		runGenerations(generations);
+		System.out.println("End of simulation");
 	}
 
 	public void runGenerations(int x) {
-		for(int i = 0; i < x; i++) {
+		for(int i = 0; i <= x; i++) {
 			System.out.println("Start");
 			// Start the timer
 			//long startTime = System.currentTimeMillis();
-			ani_list.runDays(100);
+			ani_list.runDays(1000);
 			ani_list.endOfGeneration();
 			double mean = ani_list.getMean();
 			double mean_lifespan = ani_list.getMeanLifespan();
@@ -67,16 +84,15 @@ public class Rules {
 			best = ani_list.getBest_1();
 			if(ani_list.getLowestFitness() < lowest_fitness) lowest_fitness = ani_list.getLowestFitness();
 			generation.add(ani_list);
-			ani_list = new AnimatCollection(i + 1, objectCollection, ani_list.getGenerationNeuralNetwork());
-			ani_list.startGeneration(500);
 			current_generation++;
-			if(best != null){
-				if(i % (x/3) == 0) main.updateMap(best.map(), points, lifespanPoints);
-			}
+			ani_list = new AnimatCollection(current_generation, objectCollection, ani_list.getGenerationNeuralNetwork());
+			ani_list.startGeneration(generation_size);
+//			if(best != null){
+//				if(i % (x/3) == 0) main.updateMap(best.map(), points, lifespanPoints);
+//			}
 		}
 		System.out.println("LifeSpan: "+best.getLifeSpan());
-		main.updateMap(best.map(), points, lifespanPoints);
-		System.out.println("End of simulation");
+		main.updateMap(best.map(), points, lifespanPoints, current_map);
 		// Use sparingly as performance is affected
 		save();
 	}
@@ -90,6 +106,6 @@ public class Rules {
 		for(AnimatCollection ani : generation){
 			data.add(ani.save());
 		}
-		dataFrame.save("Generations", data, new String[]  {"Generation","Best Fitness","Worst Fitness","Mean Fitness","Standard Deviation","Best Lifespan","Worst Lifespan","Mean Lifespan","Standard Deviation Lifespan"});
+		dataFrame.save("Generations Map"+ current_map, data, new String[]  {"Generation","Best Fitness","Worst Fitness","Mean Fitness","Standard Deviation","Best Lifespan","Worst Lifespan","Mean Lifespan","Standard Deviation Lifespan"});
 	}
 }

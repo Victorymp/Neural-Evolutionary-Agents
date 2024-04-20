@@ -138,16 +138,9 @@ public abstract class Object implements Drawable{
 	 * @param value
 	 */
 	public void setIota(double value) {
-		this.iota = value;
+        this.iota = value;
 	}
 
-	public void setMoveable(double value) {
-		this.moveable = value;
-	}
-
-	public double getMoveable() {
-		return moveable;
-	}
 
 	public javafx.scene.paint.Paint getColor() {
 		if(iota == 0)return Color.GREEN;

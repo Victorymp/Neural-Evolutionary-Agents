@@ -102,21 +102,13 @@ public class NeuralNetwork {
     public NeuralNetwork copy() {
         NeuralNetwork nn = new NeuralNetwork(this.input_nodes, this.hidden_nodes, this.output_nodes, this.learning_rate);
         for (int i = 0; i < this.hidden_nodes; i++) {
-            for (int j = 0; j < this.input_nodes; j++) {
-                nn.weightsIh[i][j] = this.weightsIh[i][j];
-            }
+            if (this.input_nodes >= 0) System.arraycopy(this.weightsIh[i], 0, nn.weightsIh[i], 0, this.input_nodes);
         }
         for (int i = 0; i < this.output_nodes; i++) {
-            for (int j = 0; j < this.hidden_nodes; j++) {
-                nn.weightsHo[i][j] = this.weightsHo[i][j];
-            }
+            if (this.hidden_nodes >= 0) System.arraycopy(this.weightsHo[i], 0, nn.weightsHo[i], 0, this.hidden_nodes);
         }
-        for (int i = 0; i < this.hidden_nodes; i++) {
-            nn.bias_h[i] = this.bias_h[i];
-        }
-        for (int i = 0; i < this.output_nodes; i++) {
-            nn.bias_o[i] = this.bias_o[i];
-        }
+        if (this.hidden_nodes >= 0) System.arraycopy(this.bias_h, 0, nn.bias_h, 0, this.hidden_nodes);
+        if (this.output_nodes >= 0) System.arraycopy(this.bias_o, 0, nn.bias_o, 0, this.output_nodes);
         return nn;
     }
 
@@ -167,77 +159,42 @@ public class NeuralNetwork {
     }
 
     public void mutate() {
-    // Select a random layer to mutate: 0 for weightsIh, 1 for weightsHo, 2 for bias_h, 3 for bias_o
-    int layer = new Random().nextInt(4);
-    switch (layer) {
-        case 0: // Mutate weightsIh
-            int i = new Random().nextInt(this.hidden_nodes);
-            int j = new Random().nextInt(this.input_nodes);
-            if (Math.random() <= mutationRate) {
-                // Mutate the weight by a random value between -1 and 1
-                this.weightsIh[i][j] = Math.random() * 2 - 1;
-            }
-            break;
-        case 1: // Mutate weightsHo
-            i = new Random().nextInt(this.output_nodes);
-            j = new Random().nextInt(this.hidden_nodes);
-            if (Math.random() <= mutationRate) {
-                // Mutate the weight by a random value between -1 and 1
-                this.weightsHo[i][j] = Math.random() * 2 - 1;
-            }
-            break;
-        case 2: // Mutate bias_h
-            i = new Random().nextInt(this.hidden_nodes);
-            if (Math.random() <= mutationRate) {
-                // Mutate the bias by a random value between -1 and 1
-                this.bias_h[i] = Math.random() * 2 - 1;
-            }
-            break;
-        case 3: // Mutate bias_o
-            i = new Random().nextInt(this.output_nodes);
-            if (Math.random() <= mutationRate) {
-                // Mutate the bias by a random value between -1 and 1
-                this.bias_o[i] = Math.random() * 2 - 1;
-            }
-            break;
-    }
-    }
-
-
-    public void localFeedForward(double[] inputArray, ArrayList<Object> fov, Object currentPosition) {
-        double[] hidden = new double[inputArray.length -1];
-        double[] output = new double[this.output_nodes];
-        double A = learning_rate;
-        double[][] weights_ih = setWeightsIh(fov, currentPosition);
-        double[][] weights_ho = new double[output_nodes][hidden_nodes];
-
-        for (int i = 0; i < hidden.length; i++) {
-            double sum = 0;
-            for (int j = 0; j < inputArray.length; j++) {
-                sum += weights_ih[i][j];
-            }
-            sum += this.bias_h[i];
-            hidden[i] = tanh((-A * hidden[i]) + hidden[i] + sum);
+        // Select a random layer to mutate: 0 for weightsIh, 1 for weightsHo, 2 for bias_h, 3 for bias_o
+        int layer = new Random().nextInt(4);
+        switch (layer) {
+            case 0: // Mutate weightsIh
+                int i = new Random().nextInt(this.hidden_nodes);
+                int j = new Random().nextInt(this.input_nodes);
+                if (Math.random() <= mutationRate) {
+                    // Mutate the weight by a random value between -1 and 1
+                    this.weightsIh[i][j] = Math.random() * 2 - 1;
+                }
+                break;
+            case 1: // Mutate weightsHo
+                i = new Random().nextInt(this.output_nodes);
+                j = new Random().nextInt(this.hidden_nodes);
+                if (Math.random() <= mutationRate) {
+                    // Mutate the weight by a random value between -1 and 1
+                    this.weightsHo[i][j] = Math.random() * 2 - 1;
+                }
+                break;
+            case 2: // Mutate bias_h
+                i = new Random().nextInt(this.hidden_nodes);
+                if (Math.random() <= mutationRate) {
+                    // Mutate the bias by a random value between -1 and 1
+                    this.bias_h[i] = Math.random() * 2 - 1;
+                }
+                break;
+            case 3: // Mutate bias_o
+                i = new Random().nextInt(this.output_nodes);
+                if (Math.random() <= mutationRate) {
+                    // Mutate the bias by a random value between -1 and 1
+                    this.bias_o[i] = Math.random() * 2 - 1;
+                }
+                break;
         }
-        for (int i = 0; i < this.output_nodes; i++) {
-            double sum = 0;
-            for (int j = 0; j < hidden.length; j++) {
-                sum += weights_ho[i][j] * hidden[j];
-            }
-            sum += this.bias_o[i];
-            output[i] = tanh((-A * i) + sum);
-        }
-        int increment = 0;
-        double sum = 0;
-        // foreach input in the input array
-        for(double i: inputArray){
-            sum +=  (-A * i) + weights_ih[increment][increment] + i;
-            for(double j: inputArray){
-                sum += weights_ih[increment][increment] * j;
-            }
-        }
-
     }
+
 
     private double[][] setWeightsIh(ArrayList<Object> searchField, Object currentPosition) {
         // weights are set to be an Euler distance between the two points starting from the current position
@@ -253,11 +210,11 @@ public class NeuralNetwork {
     public void crossOver(NeuralNetwork parentA, NeuralNetwork parentB) {
     // Create a new child NeuralNetwork
     NeuralNetwork child = new NeuralNetwork(this.input_nodes, this.hidden_nodes, this.output_nodes, this.learning_rate);
-
+    double random = Math.random() < 0.5?0:1;
     // Perform crossover on the weights and biases
     for (int i = 0; i < this.hidden_nodes; i++) {
         for (int j = 0; j < this.input_nodes; j++) {
-            if (Math.random() < 0.5) {
+            if (random < 0.5) {
                 child.weightsIh[i][j] = parentA.weightsIh[i][j];
             } else {
                 child.weightsIh[i][j] = parentB.weightsIh[i][j];
@@ -266,7 +223,7 @@ public class NeuralNetwork {
     }
     for (int i = 0; i < this.output_nodes; i++) {
         for (int j = 0; j < this.hidden_nodes; j++) {
-            if (Math.random() < 0.5) {
+            if (random < 0.5) {
                 child.weightsHo[i][j] = parentA.weightsHo[i][j];
             } else {
                 child.weightsHo[i][j] = parentB.weightsHo[i][j];
@@ -274,14 +231,14 @@ public class NeuralNetwork {
         }
     }
     for (int i = 0; i < this.hidden_nodes; i++) {
-        if (Math.random() < 0.5) {
+        if (random < 0.5) {
             child.bias_h[i] = parentA.bias_h[i];
         } else {
             child.bias_h[i] = parentB.bias_h[i];
         }
     }
     for (int i = 0; i < this.output_nodes; i++) {
-        if (Math.random() < 0.5) {
+        if (random < 0.5) {
             child.bias_o[i] = parentA.bias_o[i];
         } else {
             child.bias_o[i] = parentB.bias_o[i];
