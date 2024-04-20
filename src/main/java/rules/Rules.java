@@ -33,14 +33,12 @@ public class Rules {
 
 	private Animat best;
 
-	private int current_map = 2;
+	private int current_map;
 
 	private final int generation_size = 250;
 
-	private final int generations = 400;
 
-
-	public Rules(Main main, ObjectCollection ob_list) {
+    public Rules(Main main, ObjectCollection ob_list) {
 		this.main = main;
 		this.ani_list = new AnimatCollection(0, ob_list);
 		this.objectCollection = ob_list;
@@ -54,7 +52,8 @@ public class Rules {
 	 */
 	public void Start() {
 		ani_list.startGeneration(generation_size);
-		runGenerations(generations);
+        int generations = 400;
+        runGenerations(generations);
 		// next map where the animats will be made from the best animat of the previous generation
 		current_map = 1;
 		this.objectCollection = new Map(20, objectCollection, current_map).startCollection();
