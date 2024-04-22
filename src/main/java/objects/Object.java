@@ -2,11 +2,9 @@ package objects;
 
 import java.util.ArrayList;
 
-import java.awt.*;
-import shape.Drawable;
 import javafx.scene.paint.Color;
 
-public abstract class Object implements Drawable{
+public abstract class Object {
 	// protected Boolean traversable;
 	protected Boolean on_top;
 	protected ArrayList<Integer> location;

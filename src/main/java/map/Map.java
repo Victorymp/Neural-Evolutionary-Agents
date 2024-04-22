@@ -11,7 +11,6 @@ import objects.Object;
 public class Map {
     private int size;
     private ObjectCollection locations;
-    private Object[][] objectsList;
     private ObjectCollection objectsArrayList;
     private int currentMap;
 
@@ -19,7 +18,6 @@ public class Map {
         this.size = size;
         this.locations = objects;
         locations.setMap(currentMap);
-        this.objectsList = new Object[20][20];
         this.objectsArrayList = new ObjectCollection();
         this.currentMap = currentMap;
     }
@@ -37,7 +35,11 @@ public class Map {
             for (int x = 0; x < 20; x++) {
                 Rectangle r = createRectangle(sides);
                 Object obj = locations.inList(x, y);
-                r.setFill(obj.getColor());
+                if (obj == null) {
+                    r.setFill(Color.BROWN);
+                } else{
+                    r.setFill(obj.getColor());
+                }
                 board.add(r, x, y);
             }
         }
@@ -71,35 +73,37 @@ public class Map {
     private void addObjectToCollection(int x, int y) {
         switch (currentMap) {
             case 1:
-                if(y == 2) {
-                    addWater(x, y);
-                } else if (isStoneMap1(x, y)) {
+                if (isStoneMap1(x, y)) {
                     addStone(x, y);
                 } else if (x == 5 && y == 0) {
                     addResource(x, y);
+                } else if (x == 7 && y == 10) {
+                    addTrap(x, y);
                 } else {
                     addGrass(x, y);
                 }
                 break;
             case 2:
-                if(y == 2 || y == 3) {
+                if(y == 2) {
                     addWater(x, y);
                 } else if (isStoneMap2(x, y)) {
                     addStone(x, y);
-                } else if (x == 12 && y == 1) {
+                } else if (x == 5 && y == 0) {
                     addResource(x, y);
-                } else if (x == 7 && y == 10 || x == 11 && y == 15) {
+                } else if (x == 7 && y == 10) {
                     addTrap(x, y);
                 } else {
                     addGrass(x, y);
                 }
                 break;
             case 3:
-                if (isStoneMap3(x, y)) {
+                if(y == 2 || y == 3) {
+                    addWater(x, y);
+                } else if (isStoneMap3(x, y)) {
                     addStone(x, y);
-                } else if (x == 5 && y == 0) {
+                } else if (x == 12 && y == 1) {
                     addResource(x, y);
-                } else if (x == 7 && y == 10) {
+                } else if (x == 7 && y == 10 || x == 11 && y == 15) {
                     addTrap(x, y);
                 } else {
                     addGrass(x, y);
@@ -121,7 +125,6 @@ public class Map {
     private void addStone(int x, int y) {
         Stone stone = new Stone(x, y);
         objectsArrayList.addObject(stone);
-        objectsList[x][y] = stone;
     }
 
     private void addResource(int x, int y) {
@@ -149,10 +152,10 @@ public class Map {
                (x == 12 && y == 10) || (x == 14 && y == 6) || (x == 18 && y == 12);
     }
 
-    public Object map1(Object ob) {
+    public Object map2(Object ob) {
         if (ob.getY() != 2 && ob.getClass() == Water.class) {
             ob = new Grass(ob.getX(), ob.getY());
-        } if(isStoneMap1(ob.getX(), ob.getY())) {
+        } if(isStoneMap2(ob.getX(), ob.getY())) {
             ob = new Stone(ob.getX(), ob.getY());
         } if (ob.getX() == 7 && ob.getY() == 10) {
             ob = new Trap(ob.getX(), ob.getY());
@@ -168,15 +171,15 @@ public class Map {
      * @param y
      * @return
      */
-    private static boolean isStoneMap1(int x, int y) {
+    private static boolean isStoneMap2(int x, int y) {
         return (x == 1 && y == 4) || (x == 2 && y == 12) || (x == 5 && y == 9) || (x == 9 && y == 13) ||
                (x == 12 && y == 10) || (x == 14 && y == 6) || (x == 18 && y == 12);
     }
 
-    public Object map2(Object ob) {
+    public Object map3(Object ob) {
         if ((ob.getY() == 2 && ob.getClass() == Water.class) || (ob.getY() ==3 && ob.getClass() == Water.class) ) {
             ob = new Water(ob.getX(), ob.getY());
-        } else if(isStoneMap2(ob.getX(), ob.getY())) {
+        } else if(isStoneMap3(ob.getX(), ob.getY())) {
             ob = new Stone(ob.getX(), ob.getY());
         } else if (ob.getX() == 7 && ob.getY() == 10) {
             ob = new Trap(ob.getX(), ob.getY());
@@ -194,14 +197,14 @@ public class Map {
      * @param y
      * @return true if the object is a stone
      */
-    private static boolean isStoneMap2(int x, int y) {
+    private static boolean isStoneMap3(int x, int y) {
         return (x == 1 && y == 7) || (x == 3 && y == 10) || (x == 5 && y == 16) || (x == 6 && y == 14) ||
                (x == 7 && y == 16) || (x == 9 && y == 6) || (x == 12 && y == 13);
     }
 
-    public Object map3(Object ob) {
+    public Object map1(Object ob) {
         // ... code to create the map
-        if(isStoneMap3(ob.getX(), ob.getY())) {
+        if(isStoneMap1(ob.getX(), ob.getY())) {
             ob = new Stone(ob.getX(), ob.getY());
         } if (ob.getX() == 7 && ob.getY() == 10) {
             ob = new Trap(ob.getX(), ob.getY());
@@ -216,7 +219,7 @@ public class Map {
      * @param y
      * @return
      */
-    private static boolean isStoneMap3(int x, int y) {
+    private static boolean isStoneMap1(int x, int y) {
         return (x == 1 && y == 4) || (x == 2 && y == 12) || (x == 5 && y == 9) || (x == 9 && y == 13) ||
                        (x == 12 && y == 10) || (x == 14 && y == 6) || (x == 18 && y == 12);
     }

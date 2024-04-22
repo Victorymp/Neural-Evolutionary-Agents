@@ -207,14 +207,15 @@ public class AnimatCollection {
 		Stack<Animat> stack = new Stack<>();
 		for (Animat animat : ani) {
 			// If the fitness is better than the current best, update the best and not dead
-			if (animat.getFitness() > 0) {
+			int fitness = (int) animat.getFitness();
+			if (fitness > 0) {
 				stack.push(animat);
 			}
-			if (animat.getFitness() > bestFitness && animat.getFitness() > 0) {
+			if (fitness > bestFitness && fitness > 0) {
 				best_2 = best_1;
 				best_1 = animat;
-				bestFitness = animat.getFitness();
-				lowest_fitness = animat.getFitness();
+				bestFitness = fitness;
+				lowest_fitness = fitness;
 			}
 		}
 		if (!stack.isEmpty()) {
@@ -230,7 +231,6 @@ public class AnimatCollection {
 		best_1 = animats[0];
 		best_2 = animats[1];
 		return animats;
-
 	}
 
 	/**
@@ -352,7 +352,7 @@ public class AnimatCollection {
 	public double bestLifespan() {
 		return ani.stream()
 				.mapToDouble(Animat::getLifeSpan)
-				.max()
+				.min()
 				.orElse(0.0);
 	}
 
@@ -363,7 +363,7 @@ public class AnimatCollection {
 	public double worstLifeSpan() {
 		return ani.stream()
 				.mapToDouble(Animat::getLifeSpan)
-				.min()
+				.max()
 				.orElse(0.0);
 	}
 
@@ -394,6 +394,16 @@ public class AnimatCollection {
 	}
 
 	/**
+	 * Lower bound of the fitness
+	 */
+	public double lowerBoundFitness() {
+		return ani.stream()
+				.mapToDouble(Animat::getFitness)
+				.min()
+				.orElse(0.0);
+	}
+
+	/**
 	 * Mutates the animats
 	 */
 	public String[] save(){
@@ -405,6 +415,6 @@ public class AnimatCollection {
 		double worstLifespan = worstLifeSpan();
 		double meanLifespan = getMeanLifespan();
 		double stdDevLifespan = stdDevLifespan();
-		return new String[] {generation+"",bestFitness+"",worstFitness+"",meanMean+"",stdDev+"",bestLifespan+"",worstLifespan+"",meanLifespan+"",stdDevLifespan+""};
+		return new String[] {generation+"",bestFitness+"",worstFitness+"",meanMean+"",stdDev+"",bestLifespan+"",worstLifespan+"",meanLifespan+"",stdDevLifespan+"",(death_runs.size()/(double)ani.size())+"",(reached_end.size()/(double)ani.size())+""};
 	}
 }

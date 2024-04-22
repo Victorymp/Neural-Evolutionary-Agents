@@ -47,7 +47,7 @@ public class Main extends  Application {
     public ScatterChart scatterChartLifespan;
 
     public static void main(String[] args) {
-        map = new Map(20, new ObjectCollection(),3);
+        map = new Map(20, new ObjectCollection(),1);
         objects_arraylist = map.startCollection();
         launch(args);
     }

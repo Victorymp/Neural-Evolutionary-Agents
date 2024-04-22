@@ -2,7 +2,6 @@ package objects;
 
 import javafx.scene.canvas.GraphicsContext;
 
-import java.awt.*;
 
 import javafx.scene.paint.Color;
 

@@ -21,7 +21,6 @@ public class Animat {
 	private int x_pos;
 	private int y_pos;
 	private final int id;
-	private final Action action;
 	private List<String[]> run_list;
 	private int lifeSpan;
 	private final DataFrame df;
@@ -45,11 +44,10 @@ public class Animat {
 
 	private final double[] inputs = new double[5];
 
-	private double[] outputValues = new double[5];
-
-	private final Map<String, Double> distanceCache = new HashMap<>();
+    private final Map<String, Double> distanceCache = new HashMap<>();
 
 	private List<Neuron> receptiveField;
+	double carrying = 0;
 
 	public Animat(int x_pos, int y_pos, int id,  ObjectCollection object_map) {
 		this.object_map = object_map;
@@ -57,7 +55,6 @@ public class Animat {
 		this.y_pos = y_pos;
 		health = 100;
 		this.id = id;
-		action = new Action();
 		lifeSpan = 0;
 		df = new DataFrame();
 		reached_end = false;
@@ -68,12 +65,13 @@ public class Animat {
 		next_object = new Grass(getX(),getY());
 		// Initialize the neural network
 		nn = new NeuralNetwork(5, 3, 5, 0.1); // Assuming 5 possible states for the animat and 67 possible environmental states
+		receptiveField = new ArrayList<>();
 	}
 
-    public Animat(int id, Action action, DataFrame df, Boolean teacher) {
+    public Animat(int id, DataFrame df) {
         this.id = id;
-        this.action = action;
         this.df = df;
+		receptiveField = new ArrayList<>();
     }
 
 	public void setTeacher(Boolean teacher) {
@@ -103,9 +101,6 @@ public class Animat {
 		if(x_pos>20) x_pos = 20;
 		if(y_pos<0) y_pos = 0;
 		if(y_pos>20) y_pos = 20;
-		current_object = object_map.inList(x_pos, y_pos);
-		assert current_object != null;
-		current_neuron = object_map.getNeuron(x_pos, y_pos);
 		path.push(current_object);
 		// System.out.println("Updated moves");
 
@@ -135,29 +130,29 @@ public class Animat {
 	public void move() {
 		// if you're not dead
 		if (health > 0 && !reached_end) {
+			lifeSpan += 1;
 			current_object = object_map.inList(x_pos, y_pos);
 			current_neuron = object_map.getNeuron(x_pos, y_pos);
-			// Fitness function
-			evaluateFitness();
-			lifeSpan += 1;
-			// Pick up the stone
-			pickUp();
+			// Evaluate the fitness function
+			// Pick up the object
+			carryObject();
 			// Implement the decision network
 			decisionNetwork();
 			// move if you're not on the water
 			// move if you're on the water and have a stone
 			// Implementation of shunting network
 			shuntingNetwork();
+			// Fitness function
 			// die if you're on the water and don't have a stone
+			evaluateFitness();
 			if(current_object.getClass()== Trap.class) die();
-			if(current_object.getClass() == Water.class && has_stone == null)die();
+			if(current_object.getClass() == Water.class && !has_stone)die();
 		}
 	}
 
 	private void putDown() {
-		if (has_stone != null && current_object.getClass() == Water.class) {
-			has_stone = null;
-		}
+		if(current_object.getClass() == Water.class && has_stone) object_map.setObjectLocation(new Stone(x_pos, y_pos));
+
 	}
 
 
@@ -169,11 +164,6 @@ public class Animat {
 		}
 	}
 
-
-	public String[] getRuns() {
-		String[] t = {"Animat: " + this.id, "Action:" + action.getAc()};
-		return t;
-	}
 
 	public String[] getAnimat() {
 		return new String[]{"" + id, "" + lifeSpan, "" + teacher, "" + reached_end};
@@ -200,16 +190,12 @@ public class Animat {
 	 * @param aClass
 	 * @return
 	 */
-	private Object getClass(Class aClass) {
-		Object currentObject = object_map.inList(x_pos, y_pos);
+	private boolean getClass(Class aClass) {
 		// removes the need to loop over all the objects
 		// if the object is of the same class as the current object
 		// System.out.println("Current object: "+currentObject.getClass());
-		if (aClass.isInstance(currentObject)) {
-			return currentObject;
-		}
-		return null;
-	}
+        return aClass.isInstance(current_object);
+    }
 
 
 	private Double distance(int x_first, int y_first, int x_second, int y_second) {
@@ -231,7 +217,6 @@ public class Animat {
 		// Represents reachable states from current state
 		// Getting the neighbouring objects
 		double is_grass = 0;
-		double carrying = 0;
 		double is_resource = 0;
 		double is_water = 0;
 		double is_trap = 0;
@@ -254,13 +239,11 @@ public class Animat {
 		for (int i = -2; i <= 2; i++) {
 			for (int j = -2; j <= 2; j++) {
 				// Check if the neighbor is within the grid
-				if (current_object.x() + i >= 0 && current_object.x() + i < 20 && current_object.y() + j >= 0 && current_object.y() + j < 20) {
-					// if the neighbor is within the grid then add the object to the receptive field
-					Object obj = object_map.inList(current_object.x() + i, current_object.y() + j);
-					// check if the object is of the same type
-
-				}
-			}
+                if (current_object.x() + i >= 0 && current_object.x() + i < 20 && current_object.y() + j >= 0) {
+                    current_object.y();
+                }// if the neighbor is within the grid then add the object to the receptive field
+// check if the object is of the same type
+            }
 		}
 		return receptiveField;
 	}
@@ -269,11 +252,11 @@ public class Animat {
 	/**
 	 * Picks up the stone
 	 */
-	void pickUp() {
+	void carryObject() {
 		// if the animat is on the stone
 		// if the animat is on the resource
-		if(getClass(Stone.class) != null) has_stone = true;
-		if(getClass(Resource.class) != null) has_resource =true;
+		if(getClass(Stone.class)) has_stone = true;
+		if(getClass(Resource.class)) has_resource =true;
 		//System.out.println("Pick up complete: Has stone " + has_stone);
 	}
 
@@ -281,16 +264,16 @@ public class Animat {
 		// Identify the current state
 		if(current_neuron == null) System.out.println("Neuron is null");
 		// Set the receptive field of the neuron
-		if(current_neuron.getReceptiveField().isEmpty()) current_neuron = object_map.generateReceptiveField(current_neuron);
-		// System.out.println("Receptive field "+ current_neuron.getReceptiveField().size());
+		receptiveField = current_neuron.getReceptiveField();
+		if(receptiveField.isEmpty()) current_neuron = object_map.generateReceptiveField(current_neuron);
 		// Get the neighbouring objects of the current object
-		for(Neuron neuron : current_neuron.getReceptiveField()) {
+
+		for(Neuron neuron : receptiveField) {
             assert neuron != null;
             neuron.activate();
 		}
-
-		plan(current_neuron.getReceptiveField());
-		// System.out.println("Next object: "+next_object);
+		// Produce the next object
+		plan();
 		// Get the neighbouring objects of the current object
 		// Set the receptive field of the neuron
 		// Activate the neuron
@@ -312,14 +295,25 @@ public class Animat {
 		// Input iota values
 		// If the object is moveable, set the Iota value to 1 Environment type is boolean
 		// Get the output values
-		outputValues = nn.feedForward(generateInputs());
+         double[] outputValues = nn.feedForward(generateInputs());
 		// The output values for all objects in the environment
 		 setIota(outputValues[1], Resource.class);
 		 setIota(outputValues[2], Stone.class);
 		 setIota(outputValues[3], Water.class);
 		 setIota(outputValues[4], Trap.class);
+		 pickUpObject(outputValues[0]);
 
 		// System.out.println("Decision network complete");
+	}
+
+	private void pickUpObject(double outputValue) {
+		 if (outputValue > 0.3) {
+			 // Pick up the object
+			 carryObject();
+		 } else if (outputValue < -0.3) {
+			 // Put down the object
+			 putDown();
+		 }
 	}
 
 	void setIota(double outputValues, Class object){
@@ -350,11 +344,11 @@ public class Animat {
 		// Implement this method to check if the cell (x, y) is within the bounds of the environment.
         return current.x() >= 0 && current.x() <= 20 && current.y() >= 0 && current.y() <= 20;
     }
-	void plan(List<Neuron> neighbourhood){
+	void plan(){
 		// System.out.println("Planning");
 		double highest_value = -Double.MAX_VALUE;
 		Object highest_object = null;
-		for(Neuron neuron: neighbourhood){
+		for(Neuron neuron: receptiveField){
 			// if(neuron.getObject() == null) neuron.setObject(object_map.inList(neuron.getX(), neuron.getY()));
 			if(neuron.getObject().getClass() == Resource.class) {
 				next_object = neuron.getObject();

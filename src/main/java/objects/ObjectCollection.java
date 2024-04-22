@@ -34,8 +34,8 @@ public class ObjectCollection {
 	public ObjectCollection() {
 		objectLocation = new Object[GRID_SIZE + 1][GRID_SIZE + 1];
 		configurationSpace = new Neuron[GRID_SIZE + 1][GRID_SIZE + 1];
-		currentMap = 2;
-		this.map = new Map(20,currentMap);
+		currentMap = 1;
+		this.map = new Map(20, currentMap);
 	}
 
 	public void setMap(Map map) {
@@ -51,22 +51,24 @@ public class ObjectCollection {
 		this.currentMap = map_no;
 		for (Object object : objects) {
 			objectLocation[object.getX()][object.getY()] = object;
-			Neuron neuron = new Neuron(0, 0,  object.getX(), object.getY());
+			Neuron neuron = new Neuron(0, 0, object.getX(), object.getY());
 			neuron.setObject(object);
 			configurationSpace[object.getX()][object.getY()] = neuron;
 		}
 	}
 
 	public void removeObject(Object ob) {
+
 		objectLocation[ob.getX()][ob.getY()] = null;
 	}
 
 	/**
 	 * Adds an object to the object collection
+	 *
 	 * @param ob
 	 */
 	public void addObject(Object ob) {
-		if (isOutOfBounds(ob.getX(), ob.getY()) || objectLocation[ob.getX()][ob.getY()] != null || configurationSpace[ob.getX()][ob.getY()] != null){
+		if (isOutOfBounds(ob.getX(), ob.getY()) || objectLocation[ob.getX()][ob.getY()] != null || configurationSpace[ob.getX()][ob.getY()] != null) {
 			return;
 		}
 		if (currentMap == 1) {
@@ -76,14 +78,11 @@ public class ObjectCollection {
 		} else if (currentMap == 3) {
 			ob = map.map3(ob);
 		}
-		Neuron neuron = new Neuron(0, 0,  ob.getX(), ob.getY());
+		Neuron neuron = new Neuron(0, 0, ob.getX(), ob.getY());
 		neuron.setObject(ob);
 		objectLocation[ob.getX()][ob.getY()] = ob;
 		// The configuration space is a 2D array of neurons associated with the objects which represent the Cartesian grid
 		configurationSpace[ob.getX()][ob.getY()] = neuron;
-		if (ob.getClass() == Stone.class) {
-			configurationSpace[ob.getX()][ob.getY()].setCurrentValue(1);
-		}
 
 	}
 
@@ -146,7 +145,7 @@ public class ObjectCollection {
 		configurationSpace[x][y].setCurrentValue(value);
 	}
 
-	public ObjectCollection printAnimatJourney(Animat animat){
+	public ObjectCollection printAnimatJourney(Animat animat) {
 		Stack<Object> stack = animat.getStack();
 		ObjectCollection objectCollection = animat.map();
 		while (!stack.isEmpty()) {
@@ -159,22 +158,23 @@ public class ObjectCollection {
 
 	public Object getClass(Object object) {
 
-		if(object.getClass() == Grass.class) {
+		if (object.getClass() == Grass.class) {
 			return new Grass(object.getX(), object.getY());
-		} else if(object.getClass() == Water.class) {
+		} else if (object.getClass() == Water.class) {
 			return new Water(object.getX(), object.getY());
-		} else if(object.getClass() == Stone.class) {
+		} else if (object.getClass() == Stone.class) {
 			return new Stone(object.getX(), object.getY());
-		} else if(object.getClass() == Path.class) {
+		} else if (object.getClass() == Path.class) {
 			return new Path(object.getX(), object.getY());
-		} else if(object.getClass() == Trap.class) {
+		} else if (object.getClass() == Trap.class) {
 			return new Trap(object.getX(), object.getY());
-		} else if(object.getClass() == Resource.class) {
+		} else if (object.getClass() == Resource.class) {
 			return new Resource(object.getX(), object.getY());
 		} else {
 			return null;
 		}
 	}
+
 	/*
 	 * Generates the receptive field which is locations reachable by the animat
 	 */
@@ -186,7 +186,7 @@ public class ObjectCollection {
 		for (int i = -1; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
 				// Check if the neighbor is within the grid and not the neuron itself
-				if (x + i >= 0 && x + i < GRID_SIZE && y + j >= 0 && y + j < GRID_SIZE && !(i == 0 && j == 0)){
+				if (x + i >= 0 && x + i < GRID_SIZE && y + j >= 0 && y + j < GRID_SIZE && !(i == 0 && j == 0)) {
 					// Add the neuron to the receptive field
 					neuron.addReceptiveField(getNeuron(x + i, y + j));
 				}
@@ -213,4 +213,8 @@ public class ObjectCollection {
 		configurationSpace[x][y].activate();
 	}
 
+	public void setObjectLocation(Object object) {
+		objectLocation[object.getX()][object.getY()] = object;
+		configurationSpace[object.getX()][object.getY()].setObject(object);
+	}
 }

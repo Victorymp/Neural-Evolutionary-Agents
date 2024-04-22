@@ -10,4 +10,8 @@ module com.sociallearning.sociallearning {
     requires java.desktop;
 
     exports main;
+    exports neuralNetwork;
+    exports map;
+    exports rules;
+    exports objects;
 }

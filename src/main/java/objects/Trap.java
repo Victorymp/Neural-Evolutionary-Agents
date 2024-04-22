@@ -2,7 +2,7 @@ package objects;
 
 import javafx.scene.canvas.GraphicsContext;
 
-import java.awt.*;
+import javafx.scene.paint.Color;
 
 public class Trap extends Object{
     /**
@@ -31,6 +31,6 @@ public class Trap extends Object{
 
     @Override
     public javafx.scene.paint.Paint getColor() {
-        return javafx.scene.paint.Color.BLACK;
+        return Color.BLACK;
     }
 }
