@@ -5,13 +5,13 @@ import java.util.List;
 /**
  * Implements the Neuron object
  * Is no modifier because it is package-private for the animat package
+ * Ai wrote the boilerplate code for this class
  */
 public class Neuron {
     private final int X;
     private final int Y;
     private double currentValue;
     private double bias;
-    private double weights;
     private List<Neuron> receptiveField;
     private Object object;
     private double iota;
@@ -44,16 +44,6 @@ public class Neuron {
         this.bias = bias;
     }
 
-    /**
-     * Generates random weights for the neuron
-     * @param size
-     */
-    void generateWeights(int size) {
-        for (int i = 0; i < size; i++) {
-            // Generate a random weight between -1 and 1
-            weights = Math.random() * 2 - 1;
-        }
-    }
 
     /**
      * Generates all the neurons accessible 3x3 to the current neuron
@@ -89,7 +79,9 @@ public class Neuron {
     public int getY() {
         return Y;
     }
-
+    /*
+     * Activates the neuron
+     */
     public void activate() {
         // Calculate the sum of the weights and the current value
         double sum = 0;

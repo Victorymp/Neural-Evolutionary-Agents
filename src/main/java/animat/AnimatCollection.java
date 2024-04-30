@@ -277,7 +277,6 @@ public class AnimatCollection {
 				closestAnimat2 = animat;
 			}
 		}
-
 		return new Animat[]{closestAnimat1, closestAnimat2};
 	}
 
@@ -306,6 +305,7 @@ public class AnimatCollection {
 	/**
 	 * Mean fitness
 	 * @return the mean fitness of the animats
+	 * Ai was used to optimize the code
 	 */
 	public double getMean() {
 		return ani.stream()
@@ -316,6 +316,7 @@ public class AnimatCollection {
 	/**
 	 * Mean lifespan
 	 * @return the mean lifespan of the animats
+	 * Ai was used to optimize the code
 	 */
 	public double getMeanLifespan() {
 		return ani.stream()
@@ -327,6 +328,7 @@ public class AnimatCollection {
 	 * Best fitness
 	 * Fitness is if the agent has reached the end so this is 1
 	 * @return the best fitness is the agent that has the highest fitness
+	 * Ai was used to optimize the code
 	 */
 	public double bestFitness() {
 		return ani.stream()
@@ -337,6 +339,7 @@ public class AnimatCollection {
 	/*
 	 * Worst fitness
 	 * @return the worst fitness is the agent that has the lowest fitness however fitness is set to has reach end so this should always be 0
+	 * Ai was used to optimize the code
 	 */
 	public double worstFitness() {
 		return ani.stream()
@@ -348,6 +351,7 @@ public class AnimatCollection {
 	/*
 	 * Best lifespan
 	 * @return the best lifespan is the agent that has lived the shortest time with finding the resource
+	 * Ai was used to optimize the code
 	 */
 	public double bestLifespan() {
 		return ani.stream()
@@ -359,6 +363,7 @@ public class AnimatCollection {
 	/*
 	 * Worst lifespan
 	 * @return the worst lifespan is the agent that has lived the longest without finding the resource
+	 * Ai was used to optimize the code
 	 */
 	public double worstLifeSpan() {
 		return ani.stream()
@@ -370,6 +375,7 @@ public class AnimatCollection {
 	/**
 	 * Standard deviation of the fitness
 	 * @return the standard deviation of the fitness
+	 * Ai was used to optimize the code
 	 **/
 	public double stdDevFitness() {
 		double mean = ani.stream().mapToDouble(Animat::getFitness).average().orElse(0.0);
@@ -379,6 +385,7 @@ public class AnimatCollection {
 	/**
 	 * Standard deviation of the lifespan
 	 * @return the standard deviation of the lifespan
+	 * Ai was used to optimize the code
 	 **/
 	public double stdDevLifespan() {
 		ArrayList<Double> all_fitness = new ArrayList<>();
@@ -395,6 +402,7 @@ public class AnimatCollection {
 
 	/**
 	 * Lower bound of the fitness
+	 * Ai was used to optimize the code
 	 */
 	public double lowerBoundFitness() {
 		return ani.stream()

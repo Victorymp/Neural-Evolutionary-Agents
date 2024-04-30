@@ -11,17 +11,6 @@ public class Stone extends Object {
 		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	public void draw(GraphicsContext gc) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void move(int x, int y) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public javafx.scene.paint.Paint getColor() {

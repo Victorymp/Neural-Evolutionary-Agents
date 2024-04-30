@@ -13,15 +13,6 @@ public class Path extends Object{
     }
 
     @Override
-    public void draw(GraphicsContext gc) {
-
-    }
-
-    @Override
-    public void move(int x, int y) {
-
-    }
-    @Override
     public javafx.scene.paint.Paint getColor() {
         return Color.BLACK;
     }

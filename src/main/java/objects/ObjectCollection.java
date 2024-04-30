@@ -121,6 +121,10 @@ public class ObjectCollection {
 		return neighborhood;
 	}
 
+	/*
+	 * Sets the weight of the neuron at x, y to the given value
+	 * Ai implemented this method
+	 **/
 	public void setIota(Class type, double value, int x, int y) {
 		for (int i = -1; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
@@ -213,6 +217,9 @@ public class ObjectCollection {
 		configurationSpace[x][y].activate();
 	}
 
+	/*
+	 * Sets the weight of the neuron at x, y to the given value
+	 */
 	public void setObjectLocation(Object object) {
 		objectLocation[object.getX()][object.getY()] = object;
 		configurationSpace[object.getX()][object.getY()].setObject(object);

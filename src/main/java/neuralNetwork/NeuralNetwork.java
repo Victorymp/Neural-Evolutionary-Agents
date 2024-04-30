@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import objects.Object;
-
+/*
+* Neural Network class
+ *
+ */
 public class NeuralNetwork {
     private int input_nodes;
     private int hidden_nodes;
@@ -15,7 +18,9 @@ public class NeuralNetwork {
     private double[] bias_h;
     private double[] bias_o;
     private double mutationRate = 0.5;
-
+    /*
+    * Constructor for the Neural Network
+     */
     public NeuralNetwork(int input_nodes, int hidden_nodes, int output_nodes, double learning_rate) {
         this.input_nodes = input_nodes;
         this.hidden_nodes = hidden_nodes;
@@ -49,6 +54,10 @@ public class NeuralNetwork {
         }
     }
 
+    /*
+    * Train the neural network with inputs and targets
+    *
+     */
     public double[] feedForward(double[] input_array) {
         // Calculate the hidden layer values
         double[] hidden = new double[this.hidden_nodes];
@@ -158,6 +167,10 @@ public class NeuralNetwork {
         this.mutationRate = rate;
     }
 
+    /**
+     * Mutate the weights and biases of the Neural Network
+     * Ai helped optimize this method
+     */
     public void mutate() {
         // Select a random layer to mutate: 0 for weightsIh, 1 for weightsHo, 2 for bias_h, 3 for bias_o
         int layer = new Random().nextInt(4);

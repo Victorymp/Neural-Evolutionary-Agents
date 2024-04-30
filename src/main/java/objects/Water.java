@@ -33,18 +33,6 @@ public class Water extends Object {
 
 	}
 
-	@Override
-	public void draw(GraphicsContext gc) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void move(int x, int y) {
-		// TODO Auto-generated method stub
-
-	}
-
 
 
 

@@ -16,6 +16,16 @@ import objects.Object;
 
 import objects.Neuron;
 
+/*
+* This class represents an animat in the environment
+* The animat has a neural network that is used to make decisions
+* The animat can move around the environment and interact with objects
+* The animat has a fitness function that is used to evaluate its performance
+* The animat can die if it is in the water without a stone
+* The animat can reach the end of the environment where the resource is located and a fitness value of 1 is assigned
+* AI wrote the boilerplate code for this class
+*/
+
 public class Animat {
 	private int health;
 	private int x_pos;
@@ -305,7 +315,10 @@ public class Animat {
 
 		// System.out.println("Decision network complete");
 	}
-
+	/*
+	 * Pick up the object
+	 * Ai wrote this method
+	 **/
 	private void pickUpObject(double outputValue) {
 		 if (outputValue > 0.3) {
 			 // Pick up the object
@@ -315,7 +328,12 @@ public class Animat {
 			 putDown();
 		 }
 	}
-
+	/**
+	 * Set the Iota value of the object
+	 * Ai wrote this method
+	 * @param outputValues
+	 * @param object
+	 */
 	void setIota(double outputValues, Class object){
 		if(current_object != null && current_object.getClass() != Grass.class){
 			if (outputValues > 0.3) {

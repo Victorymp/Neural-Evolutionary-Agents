@@ -13,21 +13,6 @@ public class Trap extends Object{
         super(x_pos, y_pos);
     }
 
-    /**
-     * @param gc
-     */
-    @Override
-    public void draw(GraphicsContext gc) {
-
-    }
-
-    /**
-     * @param x
-     * @param y
-     */
-    @Override
-    public void move(int x, int y) {
-    }
 
     @Override
     public javafx.scene.paint.Paint getColor() {

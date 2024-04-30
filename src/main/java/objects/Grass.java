@@ -8,14 +8,4 @@ public class Grass extends Object{
         super(x_pos, y_pos);
     }
 
-
-
-    @Override
-    public void draw(GraphicsContext gc) {
-    }
-
-    @Override
-    public void move(int x, int y) {
-
-    }
 }

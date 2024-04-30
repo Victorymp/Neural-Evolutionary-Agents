@@ -107,6 +107,7 @@ public class Main extends  Application {
         primaryStage.show();
 
         // Then initialize the Rules class and start the generation process
+        // Ai implemented this part
         Rules rules = new Rules(this, objects_arraylist);
         new SwingWorker<Void,Void>(){
             @Override
@@ -120,6 +121,7 @@ public class Main extends  Application {
     // method that updates the map at the end of each generation
     /**
      * Update the map with the new object collection and the points
+     * Ai implemented this method
      * @param ob
      * @param points
      */

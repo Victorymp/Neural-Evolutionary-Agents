@@ -7,7 +7,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import objects.*;
 import objects.Object;
-
+/**
+ * This class is responsible for creating the map
+ */
 public class Map {
     private int size;
     private ObjectCollection locations;
@@ -69,7 +71,12 @@ public class Map {
         fillRemainingWithGrass();
         return objectsArrayList;
     }
-
+    /**
+     * Adds an object to the collection
+     * Ai was used to optimize the code
+     * @param x
+     * @param y
+     */
     private void addObjectToCollection(int x, int y) {
         switch (currentMap) {
             case 1:
