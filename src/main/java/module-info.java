@@ -14,4 +14,5 @@ module com.sociallearning.sociallearning {
     exports map;
     exports rules;
     exports objects;
+    exports dataFrame;
 }

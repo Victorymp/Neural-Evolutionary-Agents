@@ -4,7 +4,6 @@ import java.util.*;
 
 import java.lang.Math;
 
-import dataFrame.DataFrame;
 import objects.Grass;
 import objects.Resource;
 import objects.Stone;
@@ -33,7 +32,6 @@ public class Animat {
 	private final int id;
 	private List<String[]> run_list;
 	private int lifeSpan;
-	private final DataFrame df;
 	private boolean teacher;
 	private ObjectCollection object_map;
 	private Boolean has_stone = false;
@@ -66,7 +64,6 @@ public class Animat {
 		health = 100;
 		this.id = id;
 		lifeSpan = 0;
-		df = new DataFrame();
 		reached_end = false;
 		path = new Stack<>();
 		current_object = object_map.inList(x_pos, y_pos);
@@ -78,9 +75,8 @@ public class Animat {
 		receptiveField = new ArrayList<>();
 	}
 
-    public Animat(int id, DataFrame df) {
+    public Animat(int id) {
         this.id = id;
-        this.df = df;
 		receptiveField = new ArrayList<>();
     }
 

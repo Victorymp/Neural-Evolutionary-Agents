@@ -16,7 +16,7 @@ import objects.ObjectCollection;
 public class Rules {
 	private AnimatCollection ani_list;
 
-    private ObjectCollection objectCollection;
+  private ObjectCollection objectCollection;
 
 	private int current_generation = 0;
 
